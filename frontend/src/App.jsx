@@ -19,7 +19,7 @@ import LandingPage from "./Page/LandingPage";
 import CollectionForm from "./Page/User/CollectionForm";
 import GCHistoryPage from "./Page/GC/GCHistoryPage";
 import GCContactPage from "./Page/GC/GCContactPage";
-
+import GCViewPost from "./Page/GC/GCViewPost";
 function App() {
   return (
     <div>
@@ -52,6 +52,8 @@ function App() {
         <Route path="/pickup" element={<PickUpPage />} />
         <Route path="/gcHistory" element={<GCHistoryPage />} />
         <Route path="/gcContact" element={<GCContactPage />} />
+        <Route path="/gcviewpost" element={<GCViewPost />} />
+
       </Routes>
     </div>
   );

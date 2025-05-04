@@ -1,7 +1,7 @@
 import React from 'react';
 import Header from "../../components/Header";
 import GCSidebar from '../../components/GCSidebar';
-import ArticleCard from '../../components/ArticleCard';
+import GCArticleCard from '../../components/ArticleCard';
 import Calendar from '../../components/Calendar';
 import Reminders from '../../components/Reminders';
 
@@ -26,7 +26,7 @@ const GCHomePage = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             {articles.map((article, index) => (
-                                <ArticleCard key={index} image={article.image} title={article.title} />
+                                <GCArticleCard key={index} image={article.image} title={article.title} />
                             ))}
                         </div>
                     </div>
