@@ -1,22 +1,33 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import logo from '../assets/logo.png';
+import bgImage from '../assets/backgroundimage.png';
 import { useNavigate } from 'react-router-dom';
 
-const Signup = ({ setIsSignup }) => {
+const UserSignup = () => {
   const [formData, setFormData] = useState({
+    username: "",
     name: "",
     address: "",
     phoneNumber: "",
     email: "",
     password: "",
-    role: "",
+    confirmPassword: ""
   });
+
+  const [passwordTouched, setPasswordTouched] = useState(false);
 
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const validatePassword = (password) => {
+    const minLength = /.{7,}/;
+    const hasNumber = /\d/;
+    const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/;
+    return minLength.test(password) && hasNumber.test(password) && hasSpecialChar.test(password);
   };
 
   const handleSubmit = async (e) => {
@@ -28,9 +39,24 @@ const Signup = ({ setIsSignup }) => {
       return;
     }
 
+    if (formData.password !== formData.confirmPassword) {
+      alert("Passwords do not match");
+      return;
+    }
+
+    if (!validatePassword(formData.password)) {
+      alert("Password must contain at least 7 characters, 1 number, and 1 special character");
+      return;
+    }
+
     const updatedFormData = {
-      ...formData,
+      username: formData.username,
+      name: formData.name,
+      address: formData.address,
       phoneNumber,
+      email: formData.email,
+      password: formData.password,
+      role: "User"
     };
 
     try {
@@ -42,21 +68,16 @@ const Signup = ({ setIsSignup }) => {
       localStorage.setItem('user', JSON.stringify(user));
       if (token) localStorage.setItem('token', token);
 
-      if (user.role === 'admin') {
-        navigate('/adminHome');
-      } else if (user.role === 'garbageCollector') {
-        navigate('/gcHome');
-      } else {
-        navigate('/userHome');
-      }
+      navigate('/userHome');
 
       setFormData({
+        username: "",
         name: "",
         address: "",
         phoneNumber: "",
         email: "",
         password: "",
-        role: "",
+        confirmPassword: ""
       });
 
     } catch (err) {
@@ -65,38 +86,58 @@ const Signup = ({ setIsSignup }) => {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen bg-green-500">
-      {/* Decorative background */}
-      <div className="absolute inset-0 bg-white clip-path-custom"></div>
+    <div
+      className="relative flex flex-col items-center justify-center min-h-screen bg-cover bg-center px-6"
+      style={{ backgroundImage: `url(${bgImage})` }}
+    >
+      <div className="absolute inset-0 bg-black opacity-50"></div>
 
-      {/* Signup form container */}
-      <div className="relative z-10 w-full max-w-md p-8 bg-white shadow-lg rounded-lg">
+      <div className="relative z-10 w-full max-w-md p-8 bg-white bg-opacity-90 shadow-lg rounded-lg">
         <div className="flex justify-center mb-4">
           <img src={logo} alt="Green Cycle Tech" style={{ height: '100px', width: 'auto' }} />
         </div>
 
-        <h2 className="text-center text-xl font-bold">SIGN UP</h2>
-        <p className="text-center text-sm text-gray-600 mb-6">PLEASE FILL THE DETAILS TO COMPLETE SIGN UP</p>
+        <h2 className="text-center text-2xl font-bold text-green-700">USER SIGN UP</h2>
+        <p className="text-center text-sm text-gray-600 mb-6">
+          PLEASE FILL THE DETAILS TO CREATE USER ACCOUNT
+        </p>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
           <input
             type="text"
+            name="username"
+            placeholder="USERNAME"
+            className="input-field"
+            value={formData.username}
+            onChange={handleChange}
+            required
+          />
+
+          <input
+            type="text"
             name="name"
-            placeholder="USER NAME"
+            placeholder="FULL NAME"
             className="input-field"
             value={formData.name}
             onChange={handleChange}
             required
           />
-          <input
-            type="text"
+
+          <select
             name="address"
-            placeholder="ADDRESS"
             className="input-field"
             value={formData.address}
             onChange={handleChange}
             required
-          />
+          >
+            <option value="">SELECT ADDRESS</option>
+            <option value="Naxal">Naxal</option>
+            <option value="Baneshwor">Baneshwor</option>
+            <option value="Koteshwor">Koteshwor</option>
+            <option value="Balkhu">Balkhu</option>
+            <option value="Boudha">Boudha</option>
+          </select>
+
           <input
             type="text"
             name="phoneNumber"
@@ -106,6 +147,7 @@ const Signup = ({ setIsSignup }) => {
             onChange={handleChange}
             required
           />
+
           <input
             type="email"
             name="email"
@@ -115,6 +157,7 @@ const Signup = ({ setIsSignup }) => {
             onChange={handleChange}
             required
           />
+
           <input
             type="password"
             name="password"
@@ -122,30 +165,34 @@ const Signup = ({ setIsSignup }) => {
             className="input-field"
             value={formData.password}
             onChange={handleChange}
+            onBlur={() => setPasswordTouched(true)}
             required
           />
-          <select
-            name="role"
+          {passwordTouched && !validatePassword(formData.password) && (
+            <p className="text-sm text-red-600">
+              Password must contain at least 7 characters, 1 number, and 1 special character.
+            </p>
+          )}
+
+          <input
+            type="password"
+            name="confirmPassword"
+            placeholder="CONFIRM PASSWORD"
             className="input-field"
-            value={formData.role}
+            value={formData.confirmPassword}
             onChange={handleChange}
             required
-          >
-            <option value="">CHOOSE A ROLE</option>
-            <option value="User">User</option>
-            <option value="garbageCollector">Garbage Collector</option>
-            <option value="admin">Admin</option>
-          </select>
+          />
 
           <button
             type="submit"
             className="w-full py-2 text-white bg-green-600 rounded-md hover:bg-green-700"
           >
-            SIGNUP
+            SIGN UP
           </button>
         </form>
 
-        <p className="mt-4 text-center text-sm">
+        <p className="mt-4 text-center text-sm text-gray-700">
           ALREADY HAVE AN ACCOUNT?{" "}
           <span
             onClick={() => navigate('/login')}
@@ -153,15 +200,20 @@ const Signup = ({ setIsSignup }) => {
           >
             LOGIN NOW
           </span>
+        </p>
 
+        <p className="mt-2 text-center text-sm text-gray-700">
+          Want to register as a garbage collector?{" "}
+          <span
+            onClick={() => navigate('/signup/garbage-collector')}
+            className="text-blue-600 font-semibold cursor-pointer hover:underline"
+          >
+            Click here
+          </span>
         </p>
       </div>
 
-      {/* Styles for custom background and input */}
       <style>{`
-        .clip-path-custom {
-          clip-path: polygon(10% 0, 90% 0, 100% 85%, 50% 100%, 0 85%);
-        }
         .input-field {
           width: 100%;
           padding: 10px;
@@ -174,4 +226,4 @@ const Signup = ({ setIsSignup }) => {
   );
 };
 
-export default Signup;
+export default UserSignup;

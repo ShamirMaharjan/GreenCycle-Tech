@@ -3,7 +3,7 @@ const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  email: { type: String, required: true, unique: true, lowercase: true }, // 👈 force lowercase
+  email: { type: String, required: true, unique: true, lowercase: true },
   phoneNumber: { type: String, required: true, unique: true },
   address: { type: String, required: true },
   password: { type: String, required: true },
@@ -12,6 +12,12 @@ const userSchema = new mongoose.Schema({
     enum: ["User", "garbageCollector", "admin"],
     required: true,
   },
+  // Garbage collector specific fields
+  vehicleNumber: { type: String },
+  collectionArea: { type: String },
+  licenseNumber: { type: String },
+  verificationImage: { type: String }, // Path to the uploaded image
+  isVerified: { type: Boolean, default: false }, // Admin verification status
   createdAt: { type: Date, default: Date.now },
 });
 

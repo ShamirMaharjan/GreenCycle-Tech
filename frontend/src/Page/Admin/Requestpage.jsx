@@ -39,7 +39,7 @@ const RequestPage = () => {
 
   const handleApprove = (id) => {
     const request = requests.find(r => r.id === id);
-    navigate(`/GarbageCOllectorsHistory`, { state: { request } });
+    navigate(`/GarbageCollectorHistory`, { state: { request } });
   };
 
   const confirmReject = (id) => {

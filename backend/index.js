@@ -3,32 +3,53 @@ const mongoose = require("mongoose");
 const dotenv = require("dotenv");
 const cors = require("cors");
 const path = require("path");
+const fileUpload = require("express-fileupload");
+const fs = require("fs");
 
-// Routes
-const userRoutes = require("./routes/user");
-const articleRoutes = require("./routes/articles");
-const pickupRoutes = require("./routes/pickup");
-const userHomeRoutes = require("./routes/userHome");
-const noticeRoutes = require("./routes/notice");
-const scheduledCollectionRoutes = require("./routes/scheduledCollection");
-
+// Load environment variables
 dotenv.config();
 
+// Create Express app
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(fileUpload({
+  createParentPath: true,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  abortOnLimit: true,
+  useTempFiles: false
+}));
 
-// API Routes
-app.use("/api/users", userRoutes);
-app.use("/api/articles", articleRoutes);
-app.use("/api/pickups", pickupRoutes);
-app.use("/api/user-home", userHomeRoutes);
-app.use("/api/notices", noticeRoutes);
-app.use("/api/scheduledCollection", scheduledCollectionRoutes);
+// Ensure upload directory exists
+const uploadDir = path.join(__dirname, 'uploads/verification');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+// Static files
+app.use("/uploads", express.static(uploadDir));
+
+// Routes
+app.use("/api/users", require("./routes/user"));
+app.use("/api/articles", require("./routes/articles"));
+app.use("/api/pickups", require("./routes/pickup"));
+app.use("/api/user-home", require("./routes/userHome"));
+app.use("/api/notices", require("./routes/notice"));
+app.use("/api/scheduledCollection", require("./routes/scheduledCollection"));
+
+// Health check
+app.get("/health", (req, res) => {
+  res.status(200).json({ status: "OK", dbStatus: mongoose.connection.readyState });
+});
+
+// Error handling
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Something went wrong!' });
+});
 
 // MongoDB Connection
 const connectDB = async () => {
@@ -37,12 +58,13 @@ const connectDB = async () => {
     console.log("✅ Connected to MongoDB");
   } catch (err) {
     console.error("❌ MongoDB connection error:", err);
-    process.exit(1);  // Exit process if MongoDB connection fails
+    process.exit(1);
   }
 };
 
-connectDB();
-
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+// Start server
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
 });
