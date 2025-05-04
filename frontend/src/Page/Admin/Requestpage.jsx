@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import sidebarBg from '../../assets/backgroundimage.png';
 
+
 const RequestPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
 
   const [requests, setRequests] = useState([
     {
@@ -12,53 +15,113 @@ const RequestPage = () => {
       name: 'Saksham',
       email: 'Saksham@email.com',
       phone: '9839393941',
-      address: 'Hetauda',
-      time: '2025-04-08'
+      address: 'Kathmandu',
+      time: '2025-04-08',
+      assignedTo: null
     },
     {
       id: 2,
       name: 'Sanish',
       email: 'Sanish@email.com',
       phone: '9814393989',
-      address: 'Hetauda',
-      time: '2025-04-08'
+      address: 'Naxal',
+      time: '2025-04-08',
+      assignedTo: null
     },
     {
       id: 3,
       name: 'Sahyam',
       email: 'Sahyam@email.com',
       phone: '9839325989',
-      address: 'Hetauda',
-      time: ''
+      address: 'Thamel',
+      time: '',
+      assignedTo: null
     }
   ]);
+
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
+
+
+  const [showCollectorInfo, setShowCollectorInfo] = useState(false);
+  const [collectorDetails, setCollectorDetails] = useState(null);
+
+  const [showReassignConfirm, setShowReassignConfirm] = useState(false);
+  const [requestToReassign, setRequestToReassign] = useState(null);
+
+
+
+  useEffect(() => {
+    if (location.state?.assigned) {
+      const { requestId, collector } = location.state;
+      setRequests(prev =>
+        prev.map(req =>
+          req.id === requestId
+            ? { ...req, assignedTo: collector }
+            : req
+        )
+      );
+    }
+  }, [location.state]);
+
 
   const handleApprove = (id) => {
     const request = requests.find(r => r.id === id);
     navigate(`/GarbageCollectorHistory`, { state: { request } });
   };
 
+  const handleReassign = (request) => {
+    setRequestToReassign(request);
+    setShowReassignConfirm(true);
+  };
+  
+  const cancelReassign = () => {
+    setRequestToReassign(null);
+    setShowReassignConfirm(false);
+  };
+  
+  const confirmReassign = () => {
+    navigate(`/GarbageCollectorHistory`, { state: { request: requestToReassign } });
+    setRequestToReassign(null);
+    setShowReassignConfirm(false);
+  };
+  
+
+
   const confirmReject = (id) => {
     setSelectedId(id);
     setShowConfirm(true);
   };
+
 
   const cancelReject = () => {
     setSelectedId(null);
     setShowConfirm(false);
   };
 
+
   const handleReject = () => {
     setRequests(prev => prev.filter(r => r.id !== selectedId));
     setSelectedId(null);
     setShowConfirm(false);
     setShowDeleteSuccess(true);
-    setTimeout(() => setShowDeleteSuccess(false), 3000); // Hide success message after 3 seconds
+    setTimeout(() => setShowDeleteSuccess(false), 3000);
   };
+
+
+  const openCollectorPopup = (collector, request) => {
+    setCollectorDetails({ ...collector, request });
+    setShowCollectorInfo(true);
+  };
+
+
+  const closeCollectorPopup = () => {
+    setCollectorDetails(null);
+    setShowCollectorInfo(false);
+  };
+
 
   return (
     <div className="min-h-screen bg-white">
@@ -78,12 +141,13 @@ const RequestPage = () => {
             <h2 className="text-lg font-bold text-white text-center">GREEN CYCLE TECH</h2>
           </div>
           <div className="relative z-10 space-y-1">
-            <Link to="/adminHome" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">Home</Link>
+            <Link to="/adminHome" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">HOME</Link>
             <Link to="/users" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">USERS</Link>
             <Link to="/notice" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">NOTICE</Link>
             <Link to="/requestPage" className="block w-full px-4 py-2 bg-white text-green-600 rounded">REQUEST</Link>
           </div>
         </div>
+
 
         {/* Main Content */}
         <main className="flex-1 p-8 overflow-auto">
@@ -91,12 +155,13 @@ const RequestPage = () => {
             <h1 className="text-2xl font-bold text-gray-800 drop-shadow">REQUEST MANAGEMENT</h1>
           </div>
 
-          {/* Success Message */}
+
           {showDeleteSuccess && (
             <div className="fixed top-4 right-4 bg-green-100 border-l-4 border-green-600 text-green-800 p-4 z-50 rounded">
               Request deleted successfully!
             </div>
           )}
+
 
           <div className="bg-white rounded-lg shadow overflow-hidden">
             <div className="overflow-x-auto">
@@ -118,7 +183,23 @@ const RequestPage = () => {
                       <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.time || '-'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <button onClick={() => confirmReject(req.id)} className="text-red-600 hover:text-red-900 mr-3 text-xl">✗</button>
-                        <button onClick={() => handleApprove(req.id)} className="text-green-600 hover:text-green-900 text-xl">✓</button>
+
+
+                        {req.assignedTo ? (
+                          <button
+                            onClick={() => openCollectorPopup(req.assignedTo, req)}
+                            className="text-green-600 hover:text-green-900 text-xl"
+                          >
+                            Assigned
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleApprove(req.id)}
+                            className="text-green-600 hover:text-green-900 text-xl"
+                          >
+                            ✓
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -131,7 +212,8 @@ const RequestPage = () => {
           </div>
         </main>
 
-        {/* Confirmation Modal */}
+
+        {/* Deletion Confirmation Modal */}
         {showConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
@@ -144,10 +226,40 @@ const RequestPage = () => {
             </div>
           </div>
         )}
+
+
+        {/* Collector Info Modal */}
+        {showCollectorInfo && collectorDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
+              <h2 className="text-xl font-bold text-green-700">Assigned Collector</h2>
+              <p><strong>Name:</strong> {collectorDetails.name}</p>
+              <p><strong>Phone:</strong> {collectorDetails.phone}</p>
+              <div className="flex justify-center gap-4 mt-4">
+                <button onClick={closeCollectorPopup} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Close</button>
+                <button onClick={() => handleReassign(collectorDetails.request)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Reassign</button>
+              </div>
+            </div>
+          </div>
+        )}
+        {/*Reassign confirmation*/}
+        {showReassignConfirm && requestToReassign && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
+              <h2 className="text-xl font-bold text-green-700">Reassign Request</h2>
+              <p>Are you sure you want to reassign this request?</p>
+              <div className="flex justify-center gap-4 mt-4">
+                <button onClick={cancelReassign} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
+                <button onClick={confirmReassign} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Yes</button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
 };
 
-export default RequestPage;
 
+export default RequestPage;
