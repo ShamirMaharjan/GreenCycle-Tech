@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-
+import logo from '../assets/logo.png';
 const GCSidebar = () => {
     const location = useLocation();
     const currentPath = location.pathname;
@@ -9,7 +9,7 @@ const GCSidebar = () => {
         <div className="w-64 min-h-screen bg-[#0A2905] flex flex-col items-center">
             <div className="mt-8 mb-12">
                 <img
-                    src="/lovable-uploads/88f79527-1242-4096-a5cc-56051c099c47.png"
+                    src={logo}
                     alt="GreenCycle Logo"
                     className="w-28 h-28 rounded-full bg-white p-2"
                 />

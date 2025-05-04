@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-
+import logo from '../assets/logo.png'; // Adjust the path as necessary
 const Sidebar = () => {
     const location = useLocation();
     const currentPath = location.pathname;
@@ -9,9 +9,11 @@ const Sidebar = () => {
         <div className="w-64 min-h-screen bg-[#0A2905] flex flex-col items-center">
             <div className="mt-8 mb-12">
                 <img
-                    src="/lovable-uploads/88f79527-1242-4096-a5cc-56051c099c47.png"
+                    //"https://www.shutterstock.com/image-photo/naruto-poster-silhouette-make-landscape-600w-2543284261.jpg"
+                    src={logo}
                     alt="GreenCycle Logo"
                     className="w-28 h-28 rounded-full bg-white p-2"
+                    onError={(e) => console.error("Image failed to load:", e)}
                 />
             </div>
 
