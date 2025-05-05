@@ -1,3 +1,4 @@
+// models/Notice.js
 const mongoose = require("mongoose");
 
 const noticeSchema = new mongoose.Schema({
@@ -20,5 +21,4 @@ const noticeSchema = new mongoose.Schema({
   },
 });
 
-const Notice = mongoose.model("Notice", noticeSchema);
-module.exports = Notice;
+module.exports = mongoose.model("Notice", noticeSchema);

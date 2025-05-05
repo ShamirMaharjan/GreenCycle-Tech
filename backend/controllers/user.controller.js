@@ -11,7 +11,7 @@ require("dotenv").config();
 // Constants
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/jpg'];
-const TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || "1h";
+const TOKEN_EXPIRY = process.env.TOKEN_EXPIRY || "30d";
 
 // Helper functions
 const ensureDirectoryExists = async (dirPath) => {
@@ -85,7 +85,7 @@ async function register(req, res) {
     const token = jwt.sign(
       { userId: savedUser._id, role: savedUser.role }, 
       process.env.JWT_SECRET, 
-      { expiresIn: TOKEN_EXPIRY }
+      { expiresIn: "30d" }
     );
 
     return res.status(201).json({

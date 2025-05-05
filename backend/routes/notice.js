@@ -1,3 +1,4 @@
+// routes/notice.js
 const express = require("express");
 const { addNotice, getNotices } = require("../controllers/notice.controller");
 const router = express.Router();

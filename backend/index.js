@@ -16,39 +16,45 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use(fileUpload({
-  createParentPath: true,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  abortOnLimit: true,
-  useTempFiles: false
-}));
+app.use(
+  fileUpload({
+    createParentPath: true,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    abortOnLimit: true,
+    useTempFiles: false,
+  })
+);
 
 // Ensure upload directory exists
-const uploadDir = path.join(__dirname, 'uploads/verification');
+const uploadDir = path.join(__dirname, "uploads/verification");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Static files
+// Serve static files
 app.use("/uploads", express.static(uploadDir));
 
-// Routes
+// Routes (Updated to match simplified structure)
 app.use("/api/users", require("./routes/user"));
 app.use("/api/articles", require("./routes/articles"));
-app.use("/api/pickups", require("./routes/pickup"));
-app.use("/api/user-home", require("./routes/userHome"));
 app.use("/api/notices", require("./routes/notice"));
-app.use("/api/scheduledCollection", require("./routes/scheduledCollection"));
+app.use("/api/collections", require("./routes/scheduledCollection")); // Consolidated all collection-related routes
 
 // Health check
 app.get("/health", (req, res) => {
-  res.status(200).json({ status: "OK", dbStatus: mongoose.connection.readyState });
+  res.status(200).json({ 
+    status: "OK", 
+    dbStatus: mongoose.connection.readyState 
+  });
 });
 
 // Error handling
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong!' });
+  res.status(500).json({ 
+    success: false,
+    error: "Internal server error" 
+  });
 });
 
 // MongoDB Connection
@@ -57,7 +63,7 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ Connected to MongoDB");
   } catch (err) {
-    console.error("❌ MongoDB connection error:", err);
+    console.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   }
 };
