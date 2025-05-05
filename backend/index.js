@@ -46,8 +46,6 @@ app.post("/payment-status", paymentStatus);
 // Routes (Updated to match simplified structure)
 app.use("/api/users", require("./routes/user"));
 app.use("/api/articles", require("./routes/articles"));
-app.use("/api/pickups", require("./routes/pickup"));
-app.use("/api/user-home", require("./routes/userHome"));
 app.use("/api/notices", require("./routes/notice"));  // This is where the notice routes are handled
 app.use("/api/collections", require("./routes/scheduledCollection")); // Consolidated all collection-related routes
 

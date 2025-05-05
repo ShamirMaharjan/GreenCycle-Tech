@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../components/Header';
-import GCSidebar from '../../components/GCSidebar';
-import { Calendar } from '@/components/ui/calendar';
-import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
+import GCSidebar from '@/components/GCSidebar';
+import Calendar from '../../components/Calendar';
+import Calendar2 from '@/components/Calender2';
+import { MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar } from '@/components/ui/avatar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -43,8 +43,24 @@ const PickUpPage = () => {
         }
     ]);
 
-    const handleDateClick = (day) => {
-        setShowPickups(true);
+    // Calendar events for the collector
+    const calendarEvents = [
+        { date: new Date(2025, 4, 2), label: '3 Pickups' }, // May 2nd, 2025
+    ];
+
+    const handleDateSelect = (selectedDate) => {
+        setDate(selectedDate);
+
+        // If it's day 2 (for example), show pickups view
+        const isPickupDay = calendarEvents.some(event =>
+            event.date.getDate() === selectedDate.getDate() &&
+            event.date.getMonth() === selectedDate.getMonth() &&
+            event.date.getFullYear() === selectedDate.getFullYear()
+        );
+
+        if (isPickupDay) {
+            setShowPickups(true);
+        }
     };
 
     const handleBack = () => {
@@ -85,46 +101,17 @@ const PickUpPage = () => {
                 <Header />
 
                 <div className="p-6 bg-white m-6 rounded-lg shadow-sm">
-                    <div className="flex justify-end mb-6">
+                    <div className="flex justify-between items-center mb-6">
                         <div className="text-lg font-semibold">{formattedDate}</div>
                     </div>
 
-                    <div className="flex justify-between items-center mb-4">
-                        <button className="bg-white rounded-full p-2 shadow-sm">
-                            <ChevronLeft size={24} />
-                        </button>
-                        <h2 className="text-xl font-bold">{format(date, 'MMMM')}</h2>
-                        <button className="bg-white rounded-full p-2 shadow-sm">
-                            <ChevronRight size={24} />
-                        </button>
-                    </div>
-
                     {!showPickups ? (
-                        <div className="border rounded-lg overflow-hidden">
-                            <div className="grid grid-cols-7 text-center">
-                                <div className="p-4 font-semibold">Sun</div>
-                                <div className="p-4 font-semibold">Mon</div>
-                                <div className="p-4 font-semibold">Tue</div>
-                                <div className="p-4 font-semibold">Wed</div>
-                                <div className="p-4 font-semibold">Thu</div>
-                                <div className="p-4 font-semibold">Fri</div>
-                                <div className="p-4 font-semibold">Sat</div>
-                            </div>
-
-                            <div className="grid grid-cols-7 border-t">
-                                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
-                                    <div
-                                        key={day}
-                                        className={`p-4 border-r last:border-r-0 min-h-[100px] ${day === 2 ? 'bg-yellow-100 cursor-pointer' : ''}`}
-                                        onClick={() => day === 2 && handleDateClick(day)}
-                                    >
-                                        <div className="font-bold">{day}</div>
-                                        {day === 2 && (
-                                            <div className="mt-2 text-sm font-medium">3 Pickups</div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                        <div className="mb-6">
+                            <Calendar2
+                                selectedDate={date}
+                                onSelectDate={handleDateSelect}
+                                events={calendarEvents}
+                            />
                         </div>
                     ) : (
                         <div className="border rounded-lg overflow-hidden p-4">
