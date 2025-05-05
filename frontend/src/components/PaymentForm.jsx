@@ -25,7 +25,7 @@ const PaymentForm = () => {
         <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
             <div className="bg-white shadow-lg rounded-lg w-full max-w-md p-8">
                 <h1 className="text-2xl font-bold text-center mb-6 text-green-600">
-                    eSewa Payment Integration
+                    eSewa Payment
                 </h1>
 
                 <form onSubmit={handlePayment} className="space-y-6">
