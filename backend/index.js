@@ -37,7 +37,7 @@ app.use("/uploads", express.static(uploadDir));
 // Routes (Updated to match simplified structure)
 app.use("/api/users", require("./routes/user"));
 app.use("/api/articles", require("./routes/articles"));
-app.use("/api/notices", require("./routes/notice"));
+app.use("/api/notices", require("./routes/notice"));  // This is where the notice routes are handled
 app.use("/api/collections", require("./routes/scheduledCollection")); // Consolidated all collection-related routes
 
 // Health check
