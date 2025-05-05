@@ -40,7 +40,7 @@ const GarbageCollectorSignup = () => {
 
   const handleNext = (e) => {
     e.preventDefault();
-    
+
     const phoneNumber = formData.phoneNumber.replace(/\D/g, '');
     if (phoneNumber.length !== 10) {
       alert('Phone number must be exactly 10 digits');
@@ -90,7 +90,7 @@ const GarbageCollectorSignup = () => {
     try {
       // First create the user
       const res = await axios.post("http://localhost:3000/api/users/register", updatedFormData);
-      
+
       // Then upload the verification image if user creation was successful
       if (res.data.message === "User registered successfully") {
         const formDataToSend = new FormData();
@@ -104,7 +104,7 @@ const GarbageCollectorSignup = () => {
         });
 
         alert("Registration successful! Your account is pending verification.");
-        
+
         const { user, token } = res.data;
         localStorage.setItem('role', user.role);
         localStorage.setItem('user', JSON.stringify(user));

@@ -82,7 +82,7 @@ const Login = ({ setIsSignup }) => {
         <p className="mt-4 text-center text-sm text-gray-700">
           NOT YET A MEMBER?{" "}
           <span
-            onClick={() => navigate('/signup')}  // Switch to Signup when clicked
+            onClick={() => navigate('/signup/user')}  // Switch to Signup when clicked
             className="text-green-600 font-semibold cursor-pointer"
           >
             SIGNUP NOW

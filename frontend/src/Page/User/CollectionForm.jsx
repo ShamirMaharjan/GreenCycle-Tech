@@ -71,13 +71,21 @@ const CollectionForm = () => {
                             />
                         </div>
 
+                        {/* Payment Section */}
                         <div className="mb-6">
                             <h2 className="text-sm font-medium mb-2">Payment</h2>
                             <p className="mb-2 text-sm">You are required to pay Rs.100 for waste collection services</p>
                             <div className="flex gap-4">
-                                <div className="w-16 h-16 bg-gray-200 rounded"></div>
-                                <div className="w-16 h-16 bg-gray-200 rounded"></div>
-                                <div className="w-16 h-16 bg-gray-200 rounded"></div>
+                                <button
+                                    onClick={() => navigate('/payment')}
+                                    className="w-16 h-16 rounded shadow hover:scale-105 transition-transform duration-150"
+                                >
+                                    <img
+                                        src="https://cdn-1.webcatalog.io/catalog/esewa/esewa-icon.png?v=1743381440946"
+                                        alt="eSewa"
+                                        className="object-contain w-full h-full"
+                                    />
+                                </button>
                             </div>
                         </div>
 

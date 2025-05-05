@@ -23,13 +23,15 @@ import GCViewPost from "./Page/GC/GCViewpost";
 import CollectionForm from "./Page/User/CollectionForm";
 import GCHistoryPage from "./Page/GC/GCHistoryPage";
 import GCContactPage from "./Page/GC/GCContactPage";
-
+import PaymentForm from "./components/PaymentForm";
+import Success from "./components/Success";
+import Failure from "./components/Failure";
 function App() {
   return (
     <div>
       <Routes>
-         {/* Authentication Routes */}
-         <Route path="/signup/user" element={<UserSignup />} />
+        {/* Authentication Routes */}
+        <Route path="/signup/user" element={<UserSignup />} />
         <Route path="/signup/garbage-collector" element={<GarbageCollectorSignup />} />
         <Route path="/login" element={<Login />} />
 
@@ -50,8 +52,8 @@ function App() {
         <Route path="/editPost" element={<EditPostPage />} />
         <Route path="/notice" element={<NoticePage />} />
         <Route path="/traffic" element={<TrafficePage />} />
-        <Route path="/Requestpage" element={<RequestPage/>}/>
-        <Route path="/GarbageCollectorHistory" element={<CollectorHistoryPage/>}/>
+        <Route path="/Requestpage" element={<RequestPage />} />
+        <Route path="/GarbageCollectorHistory" element={<CollectorHistoryPage />} />
         <Route path="/users" element={<UsersPage />} />
 
         {/* Garbage Collector Routes */}
@@ -60,7 +62,15 @@ function App() {
         <Route path="/gcHistory" element={<GCHistoryPage />} />
         <Route path="/gcContact" element={<GCContactPage />} />
         <Route path="/gcviewpost" element={<GCViewPost />} />
+
+        {/* Payment Routes */}
+        <Route path="/payment" element={<PaymentForm />} />
+        <Route path="/payment-success" element={<Success />} />
+        <Route path="/payment-failure" element={<Failure />} />
+
       </Routes>
+
+
     </div>
   );
 }

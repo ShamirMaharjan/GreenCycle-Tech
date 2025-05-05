@@ -66,12 +66,12 @@ async function register(req, res) {
       }
     }
 
-    const newUser = new User({ 
-      name, 
-      email, 
-      phoneNumber, 
-      address, 
-      password, 
+    const newUser = new User({
+      name,
+      email,
+      phoneNumber,
+      address,
+      password,
       role,
       ...(role === "garbageCollector" && {
         vehicleNumber,
@@ -83,8 +83,8 @@ async function register(req, res) {
 
     const savedUser = await newUser.save();
     const token = jwt.sign(
-      { userId: savedUser._id, role: savedUser.role }, 
-      process.env.JWT_SECRET, 
+      { userId: savedUser._id, role: savedUser.role },
+      process.env.JWT_SECRET,
       { expiresIn: TOKEN_EXPIRY }
     );
 

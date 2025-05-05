@@ -5,6 +5,9 @@ const cors = require("cors");
 const path = require("path");
 const fileUpload = require("express-fileupload");
 const fs = require("fs");
+const bodyParser = require("body-parser");
+const { EsewaInitiatePayment, paymentStatus } = require("./controllers/esewa.controller.js");
+
 
 // Load environment variables
 dotenv.config();
@@ -15,6 +18,8 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
 app.use(fileUpload({
   createParentPath: true,
@@ -31,6 +36,10 @@ if (!fs.existsSync(uploadDir)) {
 
 // Static files
 app.use("/uploads", express.static(uploadDir));
+
+//esewa payment routes
+app.post("/initiate-payment", EsewaInitiatePayment);
+app.post("/payment-status", paymentStatus);
 
 // Routes
 app.use("/api/users", require("./routes/user"));
