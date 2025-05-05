@@ -21,33 +21,35 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors());
-app.use(fileUpload({
-  createParentPath: true,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  abortOnLimit: true,
-  useTempFiles: false
-}));
+app.use(
+  fileUpload({
+    createParentPath: true,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    abortOnLimit: true,
+    useTempFiles: false,
+  })
+);
 
 // Ensure upload directory exists
-const uploadDir = path.join(__dirname, 'uploads/verification');
+const uploadDir = path.join(__dirname, "uploads/verification");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Static files
+// Serve static files
 app.use("/uploads", express.static(uploadDir));
 
 //esewa payment routes
 app.post("/initiate-payment", EsewaInitiatePayment);
 app.post("/payment-status", paymentStatus);
 
-// Routes
+// Routes (Updated to match simplified structure)
 app.use("/api/users", require("./routes/user"));
 app.use("/api/articles", require("./routes/articles"));
 app.use("/api/pickups", require("./routes/pickup"));
 app.use("/api/user-home", require("./routes/userHome"));
-app.use("/api/notices", require("./routes/notice"));
-app.use("/api/scheduledCollection", require("./routes/scheduledCollection"));
+app.use("/api/notices", require("./routes/notice"));  // This is where the notice routes are handled
+app.use("/api/collections", require("./routes/scheduledCollection")); // Consolidated all collection-related routes
 
 // Health check
 app.get("/health", (req, res) => {
@@ -66,7 +68,7 @@ const connectDB = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ Connected to MongoDB");
   } catch (err) {
-    console.error("❌ MongoDB connection error:", err);
+    console.error("❌ MongoDB connection error:", err.message);
     process.exit(1);
   }
 };

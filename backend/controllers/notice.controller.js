@@ -1,48 +1,81 @@
-const Notice = require("../models/notice");
-const User = require("../models/user");
+const Notice = require("../models/Notice");
 
-// Add a new notice
-exports.addNotice = async (req, res) => {
-  const { title, description, category } = req.body;
-
-  if (!title || !description || !category) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-
-  if (!["all", "client", "garbageCollector"].includes(category)) {
-    return res.status(400).json({ message: "Invalid category selected" });
-  }
-
+// Create a new notice
+exports.createNotice = async (req, res) => {
   try {
-    // Save notice to database
-    const newNotice = new Notice({ title, description, category });
-    await newNotice.save();
-
-    // Find recipients based on category
-    let recipients;
-    if (category === "all") {
-      recipients = await User.find({}, "email"); // All users
-    } else {
-      recipients = await User.find({ role: category }, "email"); // Specific role
-    }
-
-    const recipientEmails = recipients.map(user => user.email);
-    res.status(201).json({ 
-      message: `Notice sent successfully to ${recipientEmails.length} recipient(s)`, 
-      recipients: recipientEmails 
-    });
-
+    const { title, description, category } = req.body;
+    const newNotice = await Notice.create({ title, description, category });
+    res.status(201).json(newNotice);
   } catch (err) {
-    res.status(500).json({ message: "Error adding notice" });
+    console.error(err);
+    res.status(500).json({ error: "Failed to create notice" });
   }
 };
 
-// Fetch all notices
-exports.getNotices = async (req, res) => {
+// Get the latest 10 notices, newest first
+exports.getAllNotices = async (req, res) => {
   try {
-    const notices = await Notice.find().sort({ createdAt: -1 });
+    const notices = await Notice.find()
+      .sort({ createdAt: -1 })  // newest first
+      .limit(100);               // only 10 items
     res.status(200).json(notices);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching notices" });
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch notices" });
   }
 };
+
+// Get the latest 10 notices for a specific category (plus 'All')
+exports.getNoticesByCategory = async (req, res) => {
+  try {
+    const { category } = req.params;
+    const notices = await Notice.find({
+      $or: [
+        { category: category },
+        { category: "All" }
+      ]
+    })
+      .sort({ createdAt: -1 })
+      .limit(10);
+    res.status(200).json(notices);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch notices by category" });
+  }
+};
+
+// Delete a notice by ID
+exports.deleteNotice = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await Notice.findByIdAndDelete(id);
+    if (!deleted) {
+      return res.status(404).json({ error: "Notice not found" });
+    }
+    res.status(200).json({ message: "Notice deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete notice" });
+  }
+};
+
+// Add this below your other routes
+router.get("/:category", async (req, res) => {
+  try {
+    const { category } = req.params;
+
+    const notices = await Notice.find({
+      $or: [
+        { category: category },
+        { category: "All" },
+      ],
+    }).sort({ createdAt: -1 });
+
+    // Limit to latest 10
+    res.status(200).json(notices.slice(0, 10));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Error fetching notices by category" });
+  }
+});
+
