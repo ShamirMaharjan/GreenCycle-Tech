@@ -1,19 +1,12 @@
-import React, { useState } from 'react';
-import Header from "../../components/Header";
-import { useNavigate } from 'react-router-dom';
-import Sidebar from '../../components/Sidebar';
+import React from 'react';
+import Header from '../../components/Header';
+
+import Sidebar from '@/components/Sidebar';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 const ContactPage = () => {
-    const [feedback, setFeedback] = useState('');
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log('Feedback submitted:', feedback);
-        // Here you would typically send the feedback to a server
-        alert('Thank you for your feedback!');
-        setFeedback('');
-    };
-
     return (
         <div className="flex min-h-screen bg-gray-100">
             <Sidebar />
@@ -21,41 +14,62 @@ const ContactPage = () => {
             <div className="flex-1 flex flex-col">
                 <Header />
 
-                <div className="p-6 bg-white m-6 rounded-lg shadow-sm">
-                    <form onSubmit={handleSubmit} className="mb-12">
-                        <div className="border border-blue-400 rounded-lg p-2">
-                            <textarea
-                                className="w-full h-40 resize-none outline-none p-2"
-                                placeholder="WRITE YOUR FEEDBACK"
-                                value={feedback}
-                                onChange={(e) => setFeedback(e.target.value)}
-                            />
-                        </div>
-                        <div className="flex justify-end mt-4">
-                            <button
-                                type="submit"
-                                className="bg-green-500 text-white px-6 py-2 rounded-md font-semibold"
-                            >
-                                SUBMIT
-                            </button>
-                        </div>
-                    </form>
+                <div className="p-6">
+                    <h1 className="text-2xl font-bold text-gray-800 mb-6">Contact Support</h1>
 
-                    <div className="mt-12">
-                        <h2 className="text-3xl font-bold text-center mb-12">Contact Us</h2>
-                        <div className="flex justify-between">
-                            <div className="flex flex-col gap-4">
-                                <p className="text-xl">9812345678</p>
-                                <p className="text-xl">9812345678</p>
-                            </div>
-                            <div className="flex flex-col gap-4 text-right">
-                                <p className="text-xl">greencycle@gmail.com</p>
-                                <p className="text-xl">Kathmandu, Nepal</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="md:col-span-2">
+                            <div className="bg-white p-6 rounded-lg shadow-sm">
+                                <h2 className="text-xl font-bold mb-4">Send Us a Message</h2>
+
+                                <form className="space-y-4">
+                                    <div>
+                                        <label htmlFor="subject" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Subject
+                                        </label>
+                                        <Input id="subject" placeholder="Enter subject" />
+                                    </div>
+
+                                    <div>
+                                        <label htmlFor="message" className="block text-sm font-medium text-gray-700 mb-1">
+                                            Message
+                                        </label>
+                                        <Textarea id="message" placeholder="Type your message here" rows={6} />
+                                    </div>
+
+                                    <Button className="bg-green-600 hover:bg-green-700">
+                                        Send Message
+                                    </Button>
+                                </form>
                             </div>
                         </div>
-                        <p className="text-center mt-12 text-lg">
-                            Join us in making a difference—one pickup at a time!
-                        </p>
+
+                        <div className="bg-white p-6 rounded-lg shadow-sm">
+                            <h2 className="text-xl font-bold mb-4">Contact Information</h2>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-500">Email</p>
+                                    <p className="mt-1">support@greencycle.com</p>
+                                </div>
+
+                                <div>
+                                    <p className="text-sm font-medium text-gray-500">Phone</p>
+                                    <p className="mt-1">+977 1-4444444</p>
+                                </div>
+
+                                <div>
+                                    <p className="text-sm font-medium text-gray-500">Address</p>
+                                    <p className="mt-1">Kalanki, Kathmandu, Nepal</p>
+                                </div>
+
+                                <div>
+                                    <p className="text-sm font-medium text-gray-500">Working Hours</p>
+                                    <p className="mt-1">Monday - Friday: 9AM - 5PM</p>
+                                    <p>Saturday: 10AM - 2PM</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
