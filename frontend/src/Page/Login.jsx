@@ -67,9 +67,13 @@ const Login = ({ setIsSignup }) => {
             required
           />
 
-          <p className="text-blue-600 text-sm text-left cursor-pointer hover:underline">
+          {/* Update Login component's Forgot Password link */}
+          <span
+            onClick={() => navigate('/forgot-password')}
+            className="text-blue-600 text-sm text-left cursor-pointer hover:underline"
+          >
             FORGOT PASSWORD?
-          </p>
+          </span>
 
           <button
             type="submit"

@@ -143,7 +143,8 @@ const sendOTPVerificationEmail = async ({ _id, email }) => {
       userId: _id,
       otp: hashedOtp,
       createdAt: Date.now(),
-      expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes from now
+      expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes from now
+      purpose: 'registration'
     });
 
     // Save OTP to db
@@ -355,6 +356,147 @@ async function deleteUser(req, res) {
   }
 }
 
+// Forgot Password - Send OTP
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Generate and send OTP
+    const otp = Math.floor(1000 + Math.random() * 9000);
+    const saltRounds = 10;
+    const hashedOtp = await bcrypt.hash(otp.toString(), saltRounds);
+
+    // Save OTP with password reset purpose
+    await UserOPTVerification.findOneAndUpdate(
+      { userId: user._id, purpose: 'password_reset' },
+      {
+        otp: hashedOtp,
+        createdAt: Date.now(),
+        expiresAt: Date.now() + 5 * 60 * 1000,// 5 minutes
+        purpose: 'password_reset'
+      },
+      { upsert: true, new: true }
+    );
+
+    // Send email
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset OTP",
+      html: `<p>Your password reset OTP is: <strong>${otp}</strong></p>
+             <p>This OTP will expire in 15 minutes.</p>`
+    };
+
+    await transporter.sendMail(mailOptions);
+
+    res.status(200).json({
+      success: true,
+      message: "OTP sent to your email"
+    });
+
+  } catch (error) {
+    console.error("Forgot Password Error:", error);
+    res.status(500).json({ success: false, message: "Error processing request" });
+  }
+}
+
+// Verify Reset OTP
+async function verifyResetOtp(req, res) {
+  try {
+    const { email, otp } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase() });
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    const otpRecord = await UserOPTVerification.findOne({
+      userId: user._id,
+      purpose: 'password_reset'
+    });
+
+    if (!otpRecord) {
+      return res.status(400).json({ success: false, message: "No OTP found" });
+    }
+
+    if (otpRecord.expiresAt < Date.now()) {
+      await otpRecord.deleteOne();
+      return res.status(400).json({ success: false, message: "OTP has expired" });
+    }
+
+    const isValid = await bcrypt.compare(otp, otpRecord.otp);
+    if (!isValid) {
+      return res.status(400).json({ success: false, message: "Invalid OTP" });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "OTP verified successfully"
+    });
+
+  } catch (error) {
+    console.error("Verify Reset OTP Error:", error);
+    res.status(500).json({ success: false, message: "Error verifying OTP" });
+  }
+}
+
+// Reset Password
+async function resetPassword(req, res) {
+  try {
+    const { email, otp, newPassword } = req.body;
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Verify OTP again for security
+    const otpRecord = await UserOPTVerification.findOne({
+      userId: user._id,
+      purpose: 'password_reset'
+    });
+    if (!otpRecord) {
+      return res.status(400).json({ success: false, message: "OTP verification required" });
+    }
+    const isValid = await bcrypt.compare(otp, otpRecord.otp);
+    if (!isValid || otpRecord.expiresAt < Date.now()) {
+      await otpRecord.deleteOne();
+      return res.status(400).json({ success: false, message: "Invalid or expired OTP" });
+    }
+
+    // Log the old password hash for debugging
+    console.log("Old Password Hash:", user.password);
+
+    // Update password
+    const salt = await bcrypt.genSalt(10);
+
+    user.password = newPassword;
+
+    // Log the new password hash for debugging
+    console.log("New Password :", user.password);
+
+    // Save the updated user document
+    console.log("Attempting to save user...");
+    await user.save({ validateBeforeSave: false }); // Skip pre-save hooks
+    console.log("User saved successfully");
+
+    // Delete OTP record
+    await otpRecord.deleteOne();
+
+    res.status(200).json({
+      success: true,
+      message: "Password reset successfully"
+    });
+  } catch (error) {
+    console.error("Reset Password Error:", error);
+    res.status(500).json({ success: false, message: "Error resetting password" });
+  }
+}
+
 // Export controllers
 module.exports = {
   register,
@@ -364,5 +506,8 @@ module.exports = {
   getAllUsers,
   getUnverifiedCollectors,
   deleteUser,
-  sendOTPVerificationEmail
+  sendOTPVerificationEmail,
+  forgotPassword,
+  verifyResetOtp,
+  resetPassword
 };

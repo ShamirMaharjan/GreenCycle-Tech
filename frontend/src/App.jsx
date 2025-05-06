@@ -27,6 +27,9 @@ import PaymentForm from "./components/PaymentForm";
 import Success from "./components/Success";
 import Failure from "./components/Failure";
 import OtpVerification from "./Page/OtpVerification";
+import ForgotPassword from "./Page/ForgotPassword";
+import ResetPassword from "./Page/ResetPassword";
+import VerifyResetOTP from "./Page/VerifyResetOTP";
 function App() {
   return (
     <div>
@@ -71,6 +74,12 @@ function App() {
 
         {/* Otp Verification Route */}
         <Route path="/otp-verification" element={<OtpVerification />} />
+
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-reset-otp" element={<VerifyResetOTP />} />
+
+        {/* 404 Not Found Route */}
 
       </Routes>
 

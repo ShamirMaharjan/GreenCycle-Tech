@@ -16,7 +16,7 @@ const User = require("../models/user");
 const TempUser = require("../models/TempUser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { sendOTPVerificationEmail } = require("../controllers/user.controller");
+const { sendOTPVerificationEmail, forgotPassword, verifyResetOtp, resetPassword } = require("../controllers/user.controller");
 // Configure file upload middleware
 const uploadMiddleware = fileUpload({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
@@ -29,6 +29,9 @@ const uploadMiddleware = fileUpload({
 // ----------------------
 router.post("/register", register);
 router.post("/login", login);
+router.post("/forgot-password", forgotPassword);
+router.post("/verify-reset-otp", verifyResetOtp);
+router.post("/reset-password", resetPassword);
 
 
 router.post("/verify-otp", async (req, res) => {

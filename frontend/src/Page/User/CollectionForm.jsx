@@ -102,15 +102,7 @@ const CollectionForm = () => {
                     <div className="w-full lg:w-72">
                         <Calendar />
 
-                        <div className="mt-6">
-                            <h2 className="text-xl font-bold mb-4">Reminders</h2>
-                            {[1, 2, 3].map((item) => (
-                                <div key={item} className="border border-gray-200 rounded-lg p-4 mb-4">
-                                    <div className="font-medium">17 March</div>
-                                    <div className="text-gray-700">Location: Naval</div>
-                                </div>
-                            ))}
-                        </div>
+
                     </div>
                 </div>
             </div>
