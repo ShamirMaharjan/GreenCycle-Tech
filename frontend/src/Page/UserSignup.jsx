@@ -190,9 +190,7 @@ const UserSignup = () => {
             onChange={handleChange}
             required
           />
-          <p className="text-sm text-black mt-1">
-            Password must contain at least 7 characters, 1 number, and 1 special character.
-          </p>
+
 
           {/* Confirm Password */}
           <input
@@ -208,6 +206,16 @@ const UserSignup = () => {
           {touchedFields.confirmPassword && !formData.confirmPassword && (
             <p className="text-sm text-red-600">Please confirm your password.</p>
           )}
+
+          {/* Always show password requirements */}
+          <div className="text-sm text-gray-600">
+            <p>Password must contain:</p>
+            <ul className="list-disc ml-4">
+              <li>At least 7 characters</li>
+              <li>At least 1 number</li>
+              <li>{`At least 1 special character (!@#$%^&*(),.?":{}|<>)`}</li>
+            </ul>
+          </div>
 
           <button
             type="submit"

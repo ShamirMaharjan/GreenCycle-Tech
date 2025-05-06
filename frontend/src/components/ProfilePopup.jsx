@@ -101,7 +101,7 @@ const ProfilePopup = () => {
                             <X size={18} />
                         </button>
 
-                        <div className="flex justify-center mb-4">
+                        {/* <div className="flex justify-center mb-4">
                             <Avatar className="h-16 w-16">
                                 <AvatarImage src={userData.avatarUrl} />
                                 <AvatarFallback className="bg-gray-200 text-gray-600 text-xl">
@@ -109,7 +109,7 @@ const ProfilePopup = () => {
                                 </AvatarFallback>
                             </Avatar>
                         </div>
-                        <p className="text-xs text-center text-gray-500 mb-4">Change profile picture</p>
+                        <p className="text-xs text-center text-gray-500 mb-4">Change profile picture</p> */}
 
                         <div className="space-y-4">
                             <div className="space-y-2">

@@ -19,8 +19,6 @@ const GarbageCollectorSignup = () => {
     licenseNumber: "",
     verificationImage: null
   });
-
-  const [passwordTouched, setPasswordTouched] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -40,39 +38,32 @@ const GarbageCollectorSignup = () => {
 
   const handleNext = (e) => {
     e.preventDefault();
-
     const phoneNumber = formData.phoneNumber.replace(/\D/g, '');
     if (phoneNumber.length !== 10) {
       alert('Phone number must be exactly 10 digits');
       return;
     }
-
     if (formData.password !== formData.confirmPassword) {
       alert("Passwords do not match");
       return;
     }
-
     if (!validatePassword(formData.password)) {
-      alert("Password must contain at least 7 characters, 1 number, and 1 special character");
+      alert("Password does not meet the requirements");
       return;
     }
-
     setStep(2);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!formData.vehicleNumber || !formData.collectionArea || !formData.licenseNumber) {
       alert("Please fill all garbage collector details");
       return;
     }
-
     if (!formData.verificationImage) {
       alert("Please upload verification image");
       return;
     }
-
     const phoneNumber = formData.phoneNumber.replace(/\D/g, '');
     const updatedFormData = {
       username: formData.username,
@@ -86,17 +77,14 @@ const GarbageCollectorSignup = () => {
       collectionArea: formData.collectionArea,
       licenseNumber: formData.licenseNumber
     };
-
     try {
       const res = await axios.post("http://localhost:3000/api/users/register", updatedFormData);
-
       navigate('/otp-verification', {
         state: {
           tempUserId: res.data.tempUserId,
           email: formData.email
         }
       });
-
     } catch (err) {
       alert(err.response?.data?.message || "Something went wrong during registration");
     }
@@ -108,17 +96,14 @@ const GarbageCollectorSignup = () => {
       style={{ backgroundImage: `url(${bgImage})` }}
     >
       <div className="absolute inset-0 bg-black opacity-50"></div>
-
       <div className="relative z-10 w-full max-w-md p-8 bg-white bg-opacity-90 shadow-lg rounded-lg">
         <div className="flex justify-center mb-4">
           <img src={logo} alt="Green Cycle Tech" style={{ height: '100px', width: 'auto' }} />
         </div>
-
         <h2 className="text-center text-2xl font-bold text-green-700">GARBAGE COLLECTOR SIGN UP</h2>
         <p className="text-center text-sm text-gray-600 mb-6">
           {step === 1 ? "PLEASE FILL THE BASIC DETAILS" : "PLEASE FILL YOUR PROFESSIONAL DETAILS"}
         </p>
-
         {step === 1 ? (
           <form className="space-y-4" onSubmit={handleNext}>
             <input
@@ -130,7 +115,6 @@ const GarbageCollectorSignup = () => {
               onChange={handleChange}
               required
             />
-
             <input
               type="text"
               name="name"
@@ -140,7 +124,6 @@ const GarbageCollectorSignup = () => {
               onChange={handleChange}
               required
             />
-
             <select
               name="address"
               className="input-field"
@@ -155,7 +138,6 @@ const GarbageCollectorSignup = () => {
               <option value="Balkhu">Balkhu</option>
               <option value="Boudha">Boudha</option>
             </select>
-
             <input
               type="text"
               name="phoneNumber"
@@ -165,7 +147,6 @@ const GarbageCollectorSignup = () => {
               onChange={handleChange}
               required
             />
-
             <input
               type="email"
               name="email"
@@ -175,7 +156,6 @@ const GarbageCollectorSignup = () => {
               onChange={handleChange}
               required
             />
-
             <input
               type="password"
               name="password"
@@ -183,15 +163,8 @@ const GarbageCollectorSignup = () => {
               className="input-field"
               value={formData.password}
               onChange={handleChange}
-              onBlur={() => setPasswordTouched(true)}
               required
             />
-            {passwordTouched && !validatePassword(formData.password) && (
-              <p className="text-sm text-red-600">
-                Password must contain at least 7 characters, 1 number, and 1 special character.
-              </p>
-            )}
-
             <input
               type="password"
               name="confirmPassword"
@@ -201,7 +174,15 @@ const GarbageCollectorSignup = () => {
               onChange={handleChange}
               required
             />
-
+            {/* Always show password requirements */}
+            <div className="text-sm text-gray-600">
+              <p>Password must contain:</p>
+              <ul className="list-disc ml-4">
+                <li>At least 7 characters</li>
+                <li>At least 1 number</li>
+                <li>{`At least 1 special character (!@#$%^&*(),.?":{}|<>)`}</li>
+              </ul>
+            </div>
             <button
               type="submit"
               className="w-full py-2 text-white bg-green-600 rounded-md hover:bg-green-700"
@@ -220,7 +201,6 @@ const GarbageCollectorSignup = () => {
               onChange={handleChange}
               required
             />
-
             <select
               name="collectionArea"
               className="input-field"
@@ -235,7 +215,6 @@ const GarbageCollectorSignup = () => {
               <option value="Balkhu">Balkhu</option>
               <option value="Boudha">Boudha</option>
             </select>
-
             <input
               type="text"
               name="licenseNumber"
@@ -245,7 +224,6 @@ const GarbageCollectorSignup = () => {
               onChange={handleChange}
               required
             />
-
             <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 UPLOAD VERIFICATION DOCUMENT (License or ID)
@@ -263,7 +241,6 @@ const GarbageCollectorSignup = () => {
                 required
               />
             </div>
-
             <div className="flex space-x-4">
               <button
                 type="button"
@@ -281,7 +258,6 @@ const GarbageCollectorSignup = () => {
             </div>
           </form>
         )}
-
         <p className="mt-4 text-center text-sm text-gray-700">
           ALREADY HAVE AN ACCOUNT?{" "}
           <span
@@ -291,7 +267,6 @@ const GarbageCollectorSignup = () => {
             LOGIN NOW
           </span>
         </p>
-
         <p className="mt-2 text-center text-sm text-gray-700">
           Want to register as a regular user?{" "}
           <span
@@ -302,7 +277,6 @@ const GarbageCollectorSignup = () => {
           </span>
         </p>
       </div>
-
       <style>{`
         .input-field {
           width: 100%;
