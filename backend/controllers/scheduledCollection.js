@@ -3,14 +3,15 @@ const UserHistory = require("../models/UserHistory");
 const User = require("../models/user");
 
 // User schedules a pickup
+// User schedules a pickup
 exports.addScheduledCollection = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     const newCollection = new ScheduledCollection({
       ...req.body,
       clientId: user._id,
-      clientName: user.fullName,
-      clientPhone: user.phone,
+      clientName: user.name,
+      clientPhone: user.phoneNumber, // Make sure to use `phoneNumber` here
       clientAddress: user.address,
       status: "Booked"
     });
@@ -24,6 +25,7 @@ exports.addScheduledCollection = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
 
 // Get user's pending tasks (reminders)
 exports.getRemainders = async (req, res) => {
