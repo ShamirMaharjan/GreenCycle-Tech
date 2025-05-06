@@ -66,12 +66,12 @@ async function register(req, res) {
       }
     }
 
-    const newUser = new User({
-      name,
-      email,
-      phoneNumber,
-      address,
-      password,
+    const newUser = new User({ 
+      name, 
+      email, 
+      phoneNumber, 
+      address, 
+      password, 
       role,
       ...(role === "garbageCollector" && {
         vehicleNumber,
@@ -83,8 +83,8 @@ async function register(req, res) {
 
     const savedUser = await newUser.save();
     const token = jwt.sign(
-      { userId: savedUser._id, role: savedUser.role },
-      process.env.JWT_SECRET,
+      { userId: savedUser._id, role: savedUser.role }, 
+      process.env.JWT_SECRET, 
       { expiresIn: "30d" }
     );
 
@@ -276,36 +276,17 @@ async function getUnverifiedCollectors(req, res) {
 async function deleteUser(req, res) {
   try {
     const { userId } = req.params;
-    const user = await User.findById(userId);
-
+    const user = await User.findByIdAndDelete(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
-
-    // Delete verification image if it exists
-    if (user.verificationImage) {
-      const imagePath = path.join(__dirname, "..", user.verificationImage);
-      try {
-        await unlink(imagePath);
-      } catch (err) {
-        console.warn("Could not delete verification image:", err.message);
-      }
-    }
-
-    await user.deleteOne();
-
-    return res.status(200).json({
-      success: true,
-      message: "User deleted successfully"
-    });
-
+    res.status(200).json({ success: true, message: "User deleted successfully" });
   } catch (err) {
     console.error("Delete User Error:", err);
-    return res.status(500).json({ success: false, message: "Error deleting user" });
+    res.status(500).json({ success: false, message: "Error deleting user" });
   }
 }
 
-// Export controllers
 module.exports = {
   register,
   login,

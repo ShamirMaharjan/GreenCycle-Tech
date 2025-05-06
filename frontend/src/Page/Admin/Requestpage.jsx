@@ -1,45 +1,94 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import sidebarBg from '../../assets/backgroundimage.png';
+import axios from 'axios';
 
 const RequestPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [requests, setRequests] = useState([
-    {
-      id: 1,
-      name: 'Saksham',
-      email: 'Saksham@email.com',
-      phone: '9839393941',
-      address: 'Hetauda',
-      time: '2025-04-08'
-    },
-    {
-      id: 2,
-      name: 'Sanish',
-      email: 'Sanish@email.com',
-      phone: '9814393989',
-      address: 'Hetauda',
-      time: '2025-04-08'
-    },
-    {
-      id: 3,
-      name: 'Sahyam',
-      email: 'Sahyam@email.com',
-      phone: '9839325989',
-      address: 'Hetauda',
-      time: ''
-    }
-  ]);
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
+  const [showCollectorInfo, setShowCollectorInfo] = useState(false);
+  const [collectorDetails, setCollectorDetails] = useState(null);
+
+  const [showReassignConfirm, setShowReassignConfirm] = useState(false);
+  const [requestToReassign, setRequestToReassign] = useState(null);
+
+  // Fetch requests from backend
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Token not found');
+        }
+    
+        const res = await axios.get('http://localhost:3000/api/collections/pending', {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+    
+        console.log(res.data);  // Check the structure of the response
+    
+        // Ensure to access res.data.data here to get the requests array
+        if (res.data.success && Array.isArray(res.data.data)) {
+          setRequests(res.data.data);  // Update state with the fetched data
+        } else {
+          throw new Error('Invalid data format');
+        }
+      } catch (err) {
+        setError('Failed to load requests');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, []);
+
+  // Handle assignment via navigation state
+  useEffect(() => {
+    if (location.state?.assigned) {
+      const { requestId, collector } = location.state;
+      setRequests(prev =>
+        prev.map(req =>
+          req._id === requestId
+            ? { ...req, assignedTo: collector }
+            : req
+        )
+      );
+    }
+  }, [location.state]);
+
   const handleApprove = (id) => {
-    const request = requests.find(r => r.id === id);
+    const request = requests.find(r => r._id === id);
     navigate(`/GarbageCollectorHistory`, { state: { request } });
+  };
+
+  const handleReassign = (request) => {
+    setRequestToReassign(request);
+    setShowReassignConfirm(true);
+  };
+
+  const cancelReassign = () => {
+    setRequestToReassign(null);
+    setShowReassignConfirm(false);
+  };
+
+  const confirmReassign = () => {
+    navigate(`/GarbageCollectorHistory`, { state: { request: requestToReassign } });
+    setRequestToReassign(null);
+    setShowReassignConfirm(false);
   };
 
   const confirmReject = (id) => {
@@ -53,11 +102,21 @@ const RequestPage = () => {
   };
 
   const handleReject = () => {
-    setRequests(prev => prev.filter(r => r.id !== selectedId));
+    setRequests(prev => prev.filter(r => r._id !== selectedId));
     setSelectedId(null);
     setShowConfirm(false);
     setShowDeleteSuccess(true);
-    setTimeout(() => setShowDeleteSuccess(false), 3000); // Hide success message after 3 seconds
+    setTimeout(() => setShowDeleteSuccess(false), 3000);
+  };
+
+  const openCollectorPopup = (collector, request) => {
+    setCollectorDetails({ ...collector, request });
+    setShowCollectorInfo(true);
+  };
+
+  const closeCollectorPopup = () => {
+    setCollectorDetails(null);
+    setShowCollectorInfo(false);
   };
 
   return (
@@ -78,7 +137,7 @@ const RequestPage = () => {
             <h2 className="text-lg font-bold text-white text-center">GREEN CYCLE TECH</h2>
           </div>
           <div className="relative z-10 space-y-1">
-            <Link to="/adminHome" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">Home</Link>
+            <Link to="/adminHome" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">HOME</Link>
             <Link to="/users" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">USERS</Link>
             <Link to="/notice" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">NOTICE</Link>
             <Link to="/requestPage" className="block w-full px-4 py-2 bg-white text-green-600 rounded">REQUEST</Link>
@@ -91,47 +150,70 @@ const RequestPage = () => {
             <h1 className="text-2xl font-bold text-gray-800 drop-shadow">REQUEST MANAGEMENT</h1>
           </div>
 
-          {/* Success Message */}
-          {showDeleteSuccess && (
-            <div className="fixed top-4 right-4 bg-green-100 border-l-4 border-green-600 text-green-800 p-4 z-50 rounded">
-              Request deleted successfully!
-            </div>
-          )}
-
-          <div className="bg-white rounded-lg shadow overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    {['Name', 'Email', 'Phone No.', 'Address', 'Time', 'Actions'].map((header) => (
-                      <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{header}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {requests.map((req) => (
-                    <tr key={req.id}>
-                      <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.phone}</td>
-                      <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.address}</td>
-                      <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.time || '-'}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onClick={() => confirmReject(req.id)} className="text-red-600 hover:text-red-900 mr-3 text-xl">✗</button>
-                        <button onClick={() => handleApprove(req.id)} className="text-green-600 hover:text-green-900 text-xl">✓</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {requests.length === 0 && (
-                <p className="text-center py-4 text-gray-500">No pending requests.</p>
+          {loading ? (
+            <p className="text-center text-gray-500">Loading requests...</p>
+          ) : error ? (
+            <p className="text-center text-red-500">{error}</p>
+          ) : (
+            <>
+              {showDeleteSuccess && (
+                <div className="fixed top-4 right-4 bg-green-100 border-l-4 border-green-600 text-green-800 p-4 z-50 rounded">
+                  Request deleted successfully!
+                </div>
               )}
-            </div>
-          </div>
+
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        {['Name', 'Email', 'Phone No.', 'Address', 'Time', 'Actions'].map((header) => (
+                          <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{header}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {requests.map((req) => (
+                        <tr key={req._id}>
+                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientName || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientId ? req.clientId.email : '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientPhone || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientAddress || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.date ? new Date(req.date).toLocaleString() : '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <button onClick={() => confirmReject(req._id)} className="text-red-600 hover:text-red-900 mr-3 text-xl">✗</button>
+
+                            {req.assignedTo ? (
+                              <button
+                                onClick={() => openCollectorPopup(req.assignedTo, req)}
+                                className="text-green-600 hover:text-green-900 text-xl"
+                              >
+                                Assigned
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleApprove(req._id)}
+                                className="text-green-600 hover:text-green-900 text-xl"
+                              >
+                                ✓
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {requests.length === 0 && (
+                    <p className="text-center py-4 text-gray-500">No pending requests.</p>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </main>
 
-        {/* Confirmation Modal */}
+        {/* Modals */}
+        {/* Deletion Confirmation */}
         {showConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
@@ -144,10 +226,38 @@ const RequestPage = () => {
             </div>
           </div>
         )}
+
+        {/* Collector Info Modal */}
+        {showCollectorInfo && collectorDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
+              <h2 className="text-xl font-bold text-green-700">Assigned Collector</h2>
+              <p><strong>Name:</strong> {collectorDetails.name}</p>
+              <p><strong>Phone:</strong> {collectorDetails.phone}</p>
+              <div className="flex justify-center gap-4 mt-4">
+                <button onClick={closeCollectorPopup} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Close</button>
+                <button onClick={() => handleReassign(collectorDetails.request)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Reassign</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Reassign Confirmation */}
+        {showReassignConfirm && requestToReassign && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
+              <h2 className="text-xl font-bold text-green-700">Reassign Request</h2>
+              <p>Are you sure you want to reassign this request?</p>
+              <div className="flex justify-center gap-4 mt-4">
+                <button onClick={cancelReassign} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
+                <button onClick={confirmReassign} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Yes</button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default RequestPage;
-
