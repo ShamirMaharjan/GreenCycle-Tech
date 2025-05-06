@@ -26,6 +26,7 @@ import GCContactPage from "./Page/GC/GCContactPage";
 import PaymentForm from "./components/PaymentForm";
 import Success from "./components/Success";
 import Failure from "./components/Failure";
+import OtpVerification from "./Page/OtpVerification";
 function App() {
   return (
     <div>
@@ -67,6 +68,9 @@ function App() {
         <Route path="/payment" element={<PaymentForm />} />
         <Route path="/payment-success" element={<Success />} />
         <Route path="/payment-failure" element={<Failure />} />
+
+        {/* Otp Verification Route */}
+        <Route path="/otp-verification" element={<OtpVerification />} />
 
       </Routes>
 

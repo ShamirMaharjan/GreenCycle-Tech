@@ -88,30 +88,14 @@ const GarbageCollectorSignup = () => {
     };
 
     try {
-      // First create the user
       const res = await axios.post("http://localhost:3000/api/users/register", updatedFormData);
 
-      // Then upload the verification image if user creation was successful
-      if (res.data.message === "User registered successfully") {
-        const formDataToSend = new FormData();
-        formDataToSend.append('verificationImage', formData.verificationImage);
-        formDataToSend.append('userId', res.data.user.id);
-
-        await axios.post("http://localhost:3000/api/users/upload-verification", formDataToSend, {
-          headers: {
-            'Content-Type': 'multipart/form-data'
-          }
-        });
-
-        alert("Registration successful! Your account is pending verification.");
-
-        const { user, token } = res.data;
-        localStorage.setItem('role', user.role);
-        localStorage.setItem('user', JSON.stringify(user));
-        if (token) localStorage.setItem('token', token);
-
-        navigate('/GarbageCollectorHistory');
-      }
+      navigate('/otp-verification', {
+        state: {
+          tempUserId: res.data.tempUserId,
+          email: formData.email
+        }
+      });
 
     } catch (err) {
       alert(err.response?.data?.message || "Something went wrong during registration");

@@ -2,11 +2,24 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 const path = require("path");
+const TempUser = require("../models/TempUser");
 const fs = require("fs");
 const { promisify } = require("util");
 const writeFile = promisify(fs.writeFile);
 const unlink = promisify(fs.unlink);
+const nodemailer = require("nodemailer");
+const e = require("express");
+const UserOPTVerification = require("../models/UserOPTVerification");
 require("dotenv").config();
+
+//nodemailer
+let transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+})
 
 // Constants
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -54,10 +67,6 @@ async function register(req, res) {
     }
 
     email = email.toLowerCase();
-    const existingUser = await User.findOne({ $or: [{ email }, { phoneNumber }] });
-    if (existingUser) {
-      return res.status(400).json({ success: false, message: "Email or phone number already exists" });
-    }
 
     if (role === "admin") {
       const existingAdmin = await User.findOne({ role: "admin" });
@@ -66,7 +75,25 @@ async function register(req, res) {
       }
     }
 
-    const newUser = new User({
+    // Check if user exists in either collection
+    const [existingUser, existingTempUser] = await Promise.all([
+      User.findOne({ $or: [{ email }, { phoneNumber }] }),
+      TempUser.findOne({ $or: [{ email }, { phoneNumber }] })
+    ]);
+
+    if (existingUser || existingTempUser) {
+      return res.status(400).json({
+        success: false,
+        message: "Email or phone number already exists"
+      });
+    }
+
+    // Hash password before saving to temp user
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create temporary user
+    const tempUser = new TempUser({
       name,
       email,
       phoneNumber,
@@ -76,36 +103,59 @@ async function register(req, res) {
       ...(role === "garbageCollector" && {
         vehicleNumber,
         collectionArea,
-        licenseNumber,
-        isVerified: false
+        licenseNumber
       })
     });
 
-    const savedUser = await newUser.save();
-    const token = jwt.sign(
-      { userId: savedUser._id, role: savedUser.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "30d" }
-    );
+    const savedTempUser = await tempUser.save();
 
-    return res.status(201).json({
+    // Send OTP
+    await sendOTPVerificationEmail(savedTempUser);
+
+    return res.status(200).json({
       success: true,
-      message: "User registered successfully",
-      token,
-      user: {
-        id: savedUser._id,
-        name: savedUser.name,
-        email: savedUser.email,
-        role: savedUser.role,
-        ...(role === "garbageCollector" && {
-          isVerified: savedUser.isVerified
-        })
-      }
+      message: "OTP sent to email. Please verify to complete registration.",
+      tempUserId: savedTempUser._id
     });
 
   } catch (err) {
     console.error("Registration Error:", err);
     return res.status(500).json({ success: false, message: "Internal server error during registration" });
+  }
+}
+
+const sendOTPVerificationEmail = async ({ _id, email }) => {
+  try {
+    const otp = Math.floor(1000 + Math.random() * 9000);
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "OTP Verification",
+      html: `<p>Your OTP for verification is: <strong>${otp}</strong></p> <br> <p>Note: This OTP is valid for 5 minutes.</p>`
+    };
+
+    // Hash OTP
+    const saltRounds = 10;
+    const hashedOtp = await bcrypt.hash(otp.toString(), saltRounds);
+
+    const newOtpVerification = new UserOPTVerification({
+      userId: _id,
+      otp: hashedOtp,
+      createdAt: Date.now(),
+      expiresAt: Date.now() + 5 * 60 * 1000 // 5 minutes from now
+    });
+
+    // Save OTP to db
+    await newOtpVerification.save();
+    await transporter.sendMail(mailOptions);
+
+    // Don't send response here, just return
+    return { status: "PENDING", userId: _id, email };
+
+  } catch (error) {
+    console.error("Error sending OTP:", error);
+    throw error; // Let the calling function handle the error
   }
 }
 
@@ -313,5 +363,6 @@ module.exports = {
   verifyCollector,
   getAllUsers,
   getUnverifiedCollectors,
-  deleteUser
+  deleteUser,
+  sendOTPVerificationEmail
 };
