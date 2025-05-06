@@ -22,26 +22,23 @@ const RequestPage = () => {
   const [showReassignConfirm, setShowReassignConfirm] = useState(false);
   const [requestToReassign, setRequestToReassign] = useState(null);
 
-  // Fetch requests from backend
+  const [showRequestDetails, setShowRequestDetails] = useState(false);
+  const [requestDetails, setRequestDetails] = useState(null);
+
   useEffect(() => {
     const fetchRequests = async () => {
       try {
         const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('Token not found');
-        }
-    
+        if (!token) throw new Error('Token not found');
+
         const res = await axios.get('http://localhost:3000/api/collections/pending', {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         });
-    
-        console.log(res.data);  // Check the structure of the response
-    
-        // Ensure to access res.data.data here to get the requests array
+
         if (res.data.success && Array.isArray(res.data.data)) {
-          setRequests(res.data.data);  // Update state with the fetched data
+          setRequests(res.data.data);
         } else {
           throw new Error('Invalid data format');
         }
@@ -56,22 +53,19 @@ const RequestPage = () => {
     fetchRequests();
   }, []);
 
-  // Handle assignment via navigation state
   useEffect(() => {
     if (location.state?.assigned) {
       const { requestId, collector } = location.state;
-      setRequests(prev =>
-        prev.map(req =>
-          req._id === requestId
-            ? { ...req, assignedTo: collector }
-            : req
+      setRequests((prev) =>
+        prev.map((req) =>
+          req._id === requestId ? { ...req, assignedTo: collector } : req
         )
       );
     }
   }, [location.state]);
 
   const handleApprove = (id) => {
-    const request = requests.find(r => r._id === id);
+    const request = requests.find((r) => r._id === id);
     navigate(`/GarbageCollectorHistory`, { state: { request } });
   };
 
@@ -102,7 +96,7 @@ const RequestPage = () => {
   };
 
   const handleReject = () => {
-    setRequests(prev => prev.filter(r => r._id !== selectedId));
+    setRequests((prev) => prev.filter((r) => r._id !== selectedId));
     setSelectedId(null);
     setShowConfirm(false);
     setShowDeleteSuccess(true);
@@ -117,6 +111,16 @@ const RequestPage = () => {
   const closeCollectorPopup = () => {
     setCollectorDetails(null);
     setShowCollectorInfo(false);
+  };
+
+  const handleViewDetails = (req) => {
+    setRequestDetails(req);
+    setShowRequestDetails(true);
+  };
+
+  const closeRequestDetails = () => {
+    setRequestDetails(null);
+    setShowRequestDetails(false);
   };
 
   return (
@@ -176,12 +180,13 @@ const RequestPage = () => {
                       {requests.map((req) => (
                         <tr key={req._id}>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientName || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientId ? req.clientId.email : '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientId?.email || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientPhone || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientAddress || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.date ? new Date(req.date).toLocaleString() : '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <button onClick={() => confirmReject(req._id)} className="text-red-600 hover:text-red-900 mr-3 text-xl">✗</button>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-3">
+                            <button onClick={() => confirmReject(req._id)} className="text-red-600 hover:text-red-900 text-xl">✗</button>
+                            <button onClick={() => handleViewDetails(req)} className="text-blue-600 hover:text-blue-900 text-xl">👁️</button>
 
                             {req.assignedTo ? (
                               <button
@@ -213,7 +218,6 @@ const RequestPage = () => {
         </main>
 
         {/* Modals */}
-        {/* Deletion Confirmation */}
         {showConfirm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
@@ -227,7 +231,6 @@ const RequestPage = () => {
           </div>
         )}
 
-        {/* Collector Info Modal */}
         {showCollectorInfo && collectorDetails && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
@@ -242,7 +245,6 @@ const RequestPage = () => {
           </div>
         )}
 
-        {/* Reassign Confirmation */}
         {showReassignConfirm && requestToReassign && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
@@ -251,6 +253,20 @@ const RequestPage = () => {
               <div className="flex justify-center gap-4 mt-4">
                 <button onClick={cancelReassign} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
                 <button onClick={confirmReassign} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Yes</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showRequestDetails && requestDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
+              <h2 className="text-xl font-bold text-blue-700">Request Details</h2>
+              <p><strong>Date:</strong> {new Date(requestDetails.date).toLocaleString()}</p>
+              <p><strong>Location:</strong> {requestDetails.location || '-'}</p>
+              <p><strong>Description:</strong> {requestDetails.description || '-'}</p>
+              <div className="flex justify-center gap-4 mt-4">
+                <button onClick={closeRequestDetails} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Close</button>
               </div>
             </div>
           </div>
