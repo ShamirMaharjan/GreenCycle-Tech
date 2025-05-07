@@ -7,21 +7,26 @@ const {
   deleteUser,
   uploadVerification,
   verifyCollector,
-  getUnverifiedCollectors
+  getUnverifiedCollectors,
+  sendOTPVerificationEmail,
+  forgotPassword,
+  verifyResetOtp,
+  resetPassword
 } = require("../controllers/user.controller");
 const UserOPTVerification = require("../models/UserOPTVerification");
 const fileUpload = require("express-fileupload");
 const authMiddleware = require("../middleware/authMiddleware");
+const adminAuth = require("../middleware/adminauth");
 const User = require("../models/user");
 const TempUser = require("../models/TempUser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { sendOTPVerificationEmail, forgotPassword, verifyResetOtp, resetPassword } = require("../controllers/user.controller");
-// Configure file upload middleware
+
+// Configure file upload middleware with size limit of 5MB
 const uploadMiddleware = fileUpload({
   limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
   abortOnLimit: true,
-  createParentPath: true // This option automatically creates the parent directories if they do not exist
+  createParentPath: true // Auto-create parent directories
 });
 
 // ----------------------
@@ -33,20 +38,18 @@ router.post("/forgot-password", forgotPassword);
 router.post("/verify-reset-otp", verifyResetOtp);
 router.post("/reset-password", resetPassword);
 
-
+// OTP Verification Endpoint (for temp users)
 router.post("/verify-otp", async (req, res) => {
   try {
     const { tempUserId, otp } = req.body;
 
-    // Validate input
     if (!tempUserId || !otp) {
       return res.status(400).json({
         success: false,
-        message: "Temporary user ID and OTP are required"
+        message: "Temporary user ID and OTP are required."
       });
     }
 
-    // 1. Find the temporary user
     const tempUser = await TempUser.findById(tempUserId);
     if (!tempUser) {
       return res.status(400).json({
@@ -55,7 +58,6 @@ router.post("/verify-otp", async (req, res) => {
       });
     }
 
-    // 2. Find OTP records
     const otpRecords = await UserOPTVerification.find({ userId: tempUserId });
     if (otpRecords.length === 0) {
       return res.status(400).json({
@@ -66,7 +68,6 @@ router.post("/verify-otp", async (req, res) => {
 
     const { expiresAt, otp: hashedOtp } = otpRecords[0];
 
-    // 3. Check if OTP has expired
     if (expiresAt < Date.now()) {
       await UserOPTVerification.deleteMany({ userId: tempUserId });
       return res.status(400).json({
@@ -75,7 +76,6 @@ router.post("/verify-otp", async (req, res) => {
       });
     }
 
-    // 4. Verify OTP
     const validOTP = await bcrypt.compare(otp, hashedOtp);
     if (!validOTP) {
       return res.status(400).json({
@@ -84,7 +84,6 @@ router.post("/verify-otp", async (req, res) => {
       });
     }
 
-    // 5. Create the actual user
     const newUser = new User({
       name: tempUser.name,
       email: tempUser.email.toLowerCase(),
@@ -102,23 +101,21 @@ router.post("/verify-otp", async (req, res) => {
 
     const savedUser = await newUser.save();
 
-    // 6. Clean up temporary data
+    // Clean up temporary data
     await Promise.all([
       TempUser.deleteOne({ _id: tempUserId }),
       UserOPTVerification.deleteMany({ userId: tempUserId })
     ]);
 
-    // 7. Generate JWT token
     const token = jwt.sign(
       { userId: savedUser._id, role: savedUser.role },
       process.env.JWT_SECRET,
       { expiresIn: "30d" }
     );
 
-    // 8. Return success response
     return res.status(201).json({
       success: true,
-      message: "Account verified and registered successfully",
+      message: "Account verified and registered successfully.",
       token,
       user: {
         id: savedUser._id,
@@ -135,34 +132,25 @@ router.post("/verify-otp", async (req, res) => {
     console.error("OTP Verification Error:", error);
     return res.status(500).json({
       success: false,
-      message: "An error occurred during OTP verification",
+      message: "An error occurred during OTP verification.",
       error: error.message
     });
   }
 });
 
-
+// Resend OTP
 router.post("/resend-otp", async (req, res) => {
   try {
-    // Destructure with case-insensitive fallback
-    const {
-      tempUserId,
-      TempUserId,
-      email
-    } = req.body;
-
-    // Use either tempUserId or TempUserId
+    const { tempUserId, TempUserId, email } = req.body;
     const effectiveTempUserId = tempUserId || TempUserId;
 
     if (!effectiveTempUserId || !email) {
       return res.status(400).json({
         success: false,
-        message: "Temporary user ID and email are required",
-        details: "Please provide both tempUserId and email fields"
+        message: "Temporary user ID and email are required."
       });
     }
 
-    // Check if temp user exists
     const tempUser = await TempUser.findOne({
       _id: effectiveTempUserId,
       email: email.toLowerCase()
@@ -171,23 +159,17 @@ router.post("/resend-otp", async (req, res) => {
     if (!tempUser) {
       return res.status(404).json({
         success: false,
-        message: "Registration session not found",
-        details: "No temporary user found with provided ID and email. Please start registration again."
+        message: "Registration session not found. Please start registration again."
       });
     }
 
-    // Delete any existing OTPs
+    // Delete any existing OTPs and send a new one
     await UserOPTVerification.deleteMany({ userId: effectiveTempUserId });
-
-    // Send new OTP
-    await sendOTPVerificationEmail({
-      _id: effectiveTempUserId,
-      email: tempUser.email
-    });
+    await sendOTPVerificationEmail({ _id: effectiveTempUserId, email: tempUser.email });
 
     return res.status(200).json({
       success: true,
-      message: "New OTP sent successfully",
+      message: "New OTP sent successfully.",
       tempUserId: effectiveTempUserId
     });
 
@@ -195,16 +177,15 @@ router.post("/resend-otp", async (req, res) => {
     console.error("Resend OTP Error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to resend OTP",
-      details: error.message,
-      errorType: error.name
+      message: "Failed to resend OTP.",
+      details: error.message
     });
   }
 });
 
-// ✅ Allow garbage collectors to upload verification without token
+// Endpoint for garbage collectors to upload verification without token
 router.post("/upload-verification",
-  uploadMiddleware, // Handle the file upload here
+  uploadMiddleware, // Handle file upload here
   uploadVerification
 );
 
@@ -213,7 +194,45 @@ router.post("/upload-verification",
 // ----------------------
 router.get("/unverified-collectors", authMiddleware, getUnverifiedCollectors);
 router.put("/verify-collector/:userId", authMiddleware, verifyCollector);
-router.get("/all", authMiddleware, getAllUsers);
+router.get("/all", adminAuth, getAllUsers);
 router.delete("/:userId", authMiddleware, deleteUser);
+
+// Verify Garbage Collector Route
+router.patch('/:userId/verify', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { status } = req.body;
+
+    if (typeof status !== 'boolean') {
+      return res.status(400).json({ success: false, message: "Invalid verification status" });
+    }
+
+    // Check if the user exists
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    // Only allow garbage collectors to be verified
+    if (user.role !== 'garbageCollector') {
+      return res.status(400).json({ success: false, message: "Only garbage collectors can be verified" });
+    }
+
+    // Update the user's verification status
+    user.isVerified = status;
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: `Garbage collector ${status ? 'verified' : 'unverified'} successfully`,
+      user
+    });
+
+  } catch (err) {
+    console.error("Verification Error:", err);
+    return res.status(500).json({ success: false, message: "Failed to update verification status" });
+  }
+});
 
 module.exports = router;

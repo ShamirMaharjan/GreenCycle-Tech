@@ -39,7 +39,7 @@ const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const validatePassword = (password) => /^(?=.*[!@#$%^&*(),.?":{}|<>]).{7,}$/.test(password);
 const validatePhoneNumber = (phoneNumber) => /^\d{10}$/.test(phoneNumber);
 
-// Registration controller
+// Registration Controller
 async function register(req, res) {
   try {
     let { name, email, phoneNumber, address, password, role, vehicleNumber, collectionArea, licenseNumber } = req.body;
@@ -75,7 +75,7 @@ async function register(req, res) {
       }
     }
 
-    // Check if user exists in either collection
+    // Check if user already exists
     const [existingUser, existingTempUser] = await Promise.all([
       User.findOne({ $or: [{ email }, { phoneNumber }] }),
       TempUser.findOne({ $or: [{ email }, { phoneNumber }] })
@@ -88,18 +88,19 @@ async function register(req, res) {
       });
     }
 
-    // Hash password before saving to temp user
+    // Hash password before saving
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create temporary user
+    // Create temp user with isVerified: false for garbageCollector
     const tempUser = new TempUser({
       name,
       email,
       phoneNumber,
       address,
-      password,
+      password: hashedPassword,
       role,
+      isVerified: role === "garbageCollector" ? false : true, // garbageCollector needs admin approval
       ...(role === "garbageCollector" && {
         vehicleNumber,
         collectionArea,
@@ -124,6 +125,7 @@ async function register(req, res) {
   }
 }
 
+// OTP Sender
 const sendOTPVerificationEmail = async ({ _id, email }) => {
   try {
     const otp = Math.floor(1000 + Math.random() * 9000);
@@ -132,35 +134,30 @@ const sendOTPVerificationEmail = async ({ _id, email }) => {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "OTP Verification",
-      html: `<p>Your OTP for verification is: <strong>${otp}</strong></p> <br> <p>Note: This OTP is valid for 5 minutes.</p>`
+      html: `<p>Your OTP for verification is: <strong>${otp}</strong></p><br><p>Note: This OTP is valid for 5 minutes.</p>`
     };
 
-    // Hash OTP
-    const saltRounds = 10;
-    const hashedOtp = await bcrypt.hash(otp.toString(), saltRounds);
+    const hashedOtp = await bcrypt.hash(otp.toString(), 10);
 
     const newOtpVerification = new UserOPTVerification({
       userId: _id,
       otp: hashedOtp,
       createdAt: Date.now(),
-      expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes from now
+      expiresAt: Date.now() + 5 * 60 * 1000, // 5 minutes
       purpose: 'registration'
     });
 
-    // Save OTP to db
     await newOtpVerification.save();
     await transporter.sendMail(mailOptions);
 
-    // Don't send response here, just return
     return { status: "PENDING", userId: _id, email };
-
   } catch (error) {
     console.error("Error sending OTP:", error);
-    throw error; // Let the calling function handle the error
+    throw error;
   }
 }
 
-// Login controller
+// Login Controller
 async function login(req, res) {
   try {
     let { email, password } = req.body;
@@ -177,7 +174,7 @@ async function login(req, res) {
     }
 
     if (user.role === 'garbageCollector' && !user.isVerified) {
-      return res.status(403).json({ success: false, message: "Account pending verification. Please contact admin." });
+      return res.status(403).json({ success: false, message: "Account pending admin approval. Please wait." });
     }
 
     const isMatch = await user.comparePassword(password);
@@ -211,6 +208,7 @@ async function login(req, res) {
     return res.status(500).json({ success: false, message: "Internal server error during login" });
   }
 }
+
 
 // Upload verification image (Step 3)
 async function uploadVerification(req, res) {
