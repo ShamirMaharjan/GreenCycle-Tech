@@ -16,19 +16,17 @@ const UserSignup = () => {
   });
 
   const [touchedFields, setTouchedFields] = useState({});
-  const [passwordTouched, setPasswordTouched] = useState(false);
-
+  const [formErrors, setFormErrors] = useState({});
   const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormErrors({ ...formErrors, [e.target.name]: "" });
   };
 
   const handleBlur = (e) => {
-    setTouchedFields({ ...touchedFields, [e.target.name]: true });
-    if (e.target.name === "password") {
-      setPasswordTouched(true);
-    }
+    const { name } = e.target;
+    setTouchedFields({ ...touchedFields, [name]: true });
   };
 
   const validatePassword = (password) => {
@@ -41,19 +39,23 @@ const UserSignup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const errors = {};
     const phoneNumber = formData.phoneNumber.replace(/\D/g, '');
+
     if (phoneNumber.length !== 10) {
-      alert('Phone number must be exactly 10 digits');
-      return;
+      errors.phoneNumber = 'Phone number must be exactly 10 digits';
     }
 
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
-      return;
+      errors.confirmPassword = "Passwords do not match";
     }
 
     if (!validatePassword(formData.password)) {
-      alert("Password must contain at least 7 characters, 1 number, and 1 special character");
+      errors.password = "Password must be at least 7 characters, include 1 number and 1 special character";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
       return;
     }
 
@@ -69,16 +71,14 @@ const UserSignup = () => {
 
     try {
       const res = await axios.post("http://localhost:3000/api/users/register", updatedFormData);
-
       navigate('/otp-verification', {
         state: {
           tempUserId: res.data.tempUserId,
           email: formData.email
         }
       });
-
     } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong");
+      setFormErrors({ server: err.response?.data?.message || "Something went wrong" });
     }
   };
 
@@ -99,8 +99,11 @@ const UserSignup = () => {
           PLEASE FILL THE DETAILS TO CREATE USER ACCOUNT
         </p>
 
+        {formErrors.server && (
+          <p className="text-sm text-red-600 text-center">{formErrors.server}</p>
+        )}
+
         <form className="space-y-4" onSubmit={handleSubmit}>
-          {/* Username */}
           <input
             type="text"
             name="username"
@@ -115,7 +118,6 @@ const UserSignup = () => {
             <p className="text-sm text-red-600">Username is required.</p>
           )}
 
-          {/* Full Name */}
           <input
             type="text"
             name="name"
@@ -130,7 +132,6 @@ const UserSignup = () => {
             <p className="text-sm text-red-600">Full name is required.</p>
           )}
 
-          {/* Address */}
           <select
             name="address"
             className="input-field"
@@ -150,7 +151,6 @@ const UserSignup = () => {
             <p className="text-sm text-red-600">Address is required.</p>
           )}
 
-          {/* Phone Number */}
           <input
             type="text"
             name="phoneNumber"
@@ -161,11 +161,10 @@ const UserSignup = () => {
             onBlur={handleBlur}
             required
           />
-          {touchedFields.phoneNumber && !formData.phoneNumber && (
-            <p className="text-sm text-red-600">Phone number is required.</p>
+          {formErrors.phoneNumber && (
+            <p className="text-sm text-red-600">{formErrors.phoneNumber}</p>
           )}
 
-          {/* Email */}
           <input
             type="email"
             name="email"
@@ -180,7 +179,6 @@ const UserSignup = () => {
             <p className="text-sm text-red-600">Email is required.</p>
           )}
 
-          {/* Password */}
           <input
             type="password"
             name="password"
@@ -188,11 +186,13 @@ const UserSignup = () => {
             className="input-field"
             value={formData.password}
             onChange={handleChange}
+            onBlur={handleBlur}
             required
           />
+          {formErrors.password && (
+            <p className="text-sm text-red-600">{formErrors.password}</p>
+          )}
 
-
-          {/* Confirm Password */}
           <input
             type="password"
             name="confirmPassword"
@@ -203,11 +203,10 @@ const UserSignup = () => {
             onBlur={handleBlur}
             required
           />
-          {touchedFields.confirmPassword && !formData.confirmPassword && (
-            <p className="text-sm text-red-600">Please confirm your password.</p>
+          {formErrors.confirmPassword && (
+            <p className="text-sm text-red-600">{formErrors.confirmPassword}</p>
           )}
 
-          {/* Always show password requirements */}
           <div className="text-sm text-gray-600">
             <p>Password must contain:</p>
             <ul className="list-disc ml-4">
