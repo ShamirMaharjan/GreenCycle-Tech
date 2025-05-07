@@ -12,6 +12,7 @@ import AdminHomePage from "./Page/Admin/AdminHomePage";
 import AddPostPage from "./Page/Admin/AddPostPage";
 import EditPostPage from "./Page/Admin/EditPostPage";
 import NoticePage from "./Page/Admin/NoticePage";
+import AdminContact from "./Page/Admin/AdminContactpage";
 import RequestPage from "./Page/Admin/Requestpage";
 import TrafficePage from "./Page/Admin/TrafficePage";
 import CollectorHistoryPage from "./Page/Admin/CollectorHistoryPage";
@@ -59,6 +60,7 @@ function App() {
         <Route path="/Requestpage" element={<RequestPage />} />
         <Route path="/GarbageCollectorHistory" element={<CollectorHistoryPage />} />
         <Route path="/users" element={<UsersPage />} />
+        <Route path="/Admincontact" element={<AdminContact/>} />
 
         {/* Garbage Collector Routes */}
         <Route path="/gcHome" element={<GCHomePage />} />

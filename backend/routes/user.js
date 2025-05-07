@@ -16,8 +16,8 @@ const {
 const UserOPTVerification = require("../models/UserOPTVerification");
 const fileUpload = require("express-fileupload");
 const authMiddleware = require("../middleware/authMiddleware");
-const adminAuth = require("../middleware/adminauth");
-const User = require("../models/user");
+const adminAuth = require("../middleware/adminAuth");
+const User = require("../models/User");
 const TempUser = require("../models/TempUser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");

@@ -1,6 +1,6 @@
 const ScheduledCollection = require("../models/scheduledCollection");
 const UserHistory = require("../models/UserHistory");
-const User = require("../models/user");
+const User = require("../models/User");
 
 // User schedules a pickup
 // User schedules a pickup

@@ -169,6 +169,8 @@ async function login(req, res) {
     email = email.toLowerCase();
     const user = await User.findOne({ email });
 
+    console.log("Fetched user during login:", user);
+
     if (!user) {
       return res.status(401).json({ success: false, message: "Invalid credentials" });
     }
@@ -286,7 +288,7 @@ async function verifyCollector(req, res) {
     if (user.role !== 'garbageCollector') {
       return res.status(400).json({ success: false, message: "Only garbage collectors can be verified" });
     }
-
+    console.log("User after verification:", user);
     return res.status(200).json({
       success: true,
       message: `Garbage collector ${status ? 'verified' : 'unverified'} successfully`,

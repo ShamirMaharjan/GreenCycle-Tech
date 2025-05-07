@@ -1,19 +1,32 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const scheduledCollectionSchema = new mongoose.Schema({
-  date: { type: Date, required: true },
-  location: { type: String, required: true },
-  description: { type: String, required: true },
-  status: {
+const contactMessageSchema = new mongoose.Schema({
+  name: {
     type: String,
-    enum: ["Booked", "Assigned", "Not Arrived", "On the Way", "Picked Up"],
-    default: "Booked"
+    required: true
   },
-  clientId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  collectorId: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  clientName: String,
-  clientPhone: String,
-  clientAddress: String
-}, { timestamps: true });
+  email: {
+    type: String,
+    required: true
+  },
+  role: {
+    type: String,
+    required: true
+  },
+  subject: {
+    type: String,
+    required: true
+  },
+  message: {
+    type: String,
+    required: true
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
+});
 
-module.exports = mongoose.model("ScheduledCollection", scheduledCollectionSchema);
+const ContactMessage = mongoose.model('ContactMessage', contactMessageSchema);
+
+module.exports = ContactMessage;
