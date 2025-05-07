@@ -124,6 +124,8 @@ router.post("/verify-otp", async (req, res) => {
         id: savedUser._id,
         name: savedUser.name,
         email: savedUser.email,
+        phoneNumber: savedUser.phoneNumber,
+        address: savedUser.address,
         role: savedUser.role,
         ...(savedUser.role === "garbageCollector" && {
           isVerified: savedUser.isVerified

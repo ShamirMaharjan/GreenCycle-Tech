@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { ChevronRight, Recycle, Calendar, Clock, User, Phone } from 'lucide-react';
 
 const recycleImage = "https://images.unsplash.com/photo-1604187351574-c75ca79f5807?q=80&w=1000&auto=format&fit=crop";
-const cityImage = "https://images.unsplash.com/photo-1518013431117-eb1465fa5752?q=80&w=1000&auto=format&fit=crop";
+const cityImage = "https://www.banyannation.com/wp-content/uploads/2024/10/Sustainable-Waste-Management.jpg";
 
 const LandingPage = () => {
   return (

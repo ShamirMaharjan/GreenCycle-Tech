@@ -7,6 +7,8 @@ import recyclablewaste from "../../assets/recyclablewaste.png";
 import sidebarBg from "../../assets/backgroundimage.png";
 import adminPhoto from "../../assets/AdminPhoto.png";
 
+import AdminHeader from '@/components/AdminHeader';
+
 const AdminHomePage = () => {
   const [date, setDate] = useState(new Date());
   const [popupOpen, setPopupOpen] = useState(false);
@@ -84,9 +86,9 @@ const AdminHomePage = () => {
 
         {/* Main Content */}
         <div className="flex-1 p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800">ARTICLES ABOUT WASTE MANAGEMENT</h1>
-            <div className="relative">
+
+          {/* <h1 className="text-2xl font-bold text-gray-800">ARTICLES ABOUT WASTE MANAGEMENT</h1> */}
+          {/* <div className="relative">
               <img
                 src={adminPhoto}
                 alt="Admin"
@@ -110,10 +112,11 @@ const AdminHomePage = () => {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
+            </div> */}
+          <AdminHeader />
 
-          <div className="flex gap-6">
+
+          <div className="flex gap-6 mt-6">
             {/* Posts Grid */}
             <div className="grid grid-cols-3 gap-6 flex-grow">
               {posts.map(post => (

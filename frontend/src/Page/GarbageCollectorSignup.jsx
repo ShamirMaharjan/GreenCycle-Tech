@@ -60,10 +60,7 @@ const GarbageCollectorSignup = () => {
       alert("Please fill all garbage collector details");
       return;
     }
-    if (!formData.verificationImage) {
-      alert("Please upload verification image");
-      return;
-    }
+
     const phoneNumber = formData.phoneNumber.replace(/\D/g, '');
     const updatedFormData = {
       username: formData.username,
@@ -224,7 +221,7 @@ const GarbageCollectorSignup = () => {
               onChange={handleChange}
               required
             />
-            <div className="mt-4">
+            {/* <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 UPLOAD VERIFICATION DOCUMENT (License or ID)
               </label>
@@ -240,7 +237,7 @@ const GarbageCollectorSignup = () => {
                   hover:file:bg-green-100"
                 required
               />
-            </div>
+            </div> */}
             <div className="flex space-x-4">
               <button
                 type="button"

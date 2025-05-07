@@ -5,11 +5,6 @@ const articleSchema = new mongoose.Schema(
     title: { type: String, required: true },
     description: { type: String, required: true },
     imageUrl: { type: String },
-    category: {
-      type: String,
-      required: true,
-      enum: ["RECYCLABLE WASTE", "COMPOST", "ELECTRONIC WASTE", "HAZARDOUS WASTE"], // Added enum
-    },
   },
   { timestamps: true }
 );

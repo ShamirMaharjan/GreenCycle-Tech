@@ -7,7 +7,6 @@ const AddPostPage = () => {
   const [post, setPost] = useState({
     title: '',
     description: '',
-    category: '',
     image: null
   });
   const [imageName, setImageName] = useState('');
@@ -139,7 +138,7 @@ const AddPostPage = () => {
               </div>
 
               {/* Category */}
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <label className="block text-gray-700 font-medium mb-2">Category</label>
                 <select
                   name="category"
@@ -154,7 +153,7 @@ const AddPostPage = () => {
                   <option value="Organic">Organic Waste</option>
                   <option value="Electronic">Electronic Waste</option>
                 </select>
-              </div>
+              </div> */}
 
               {/* Buttons */}
               <div className="flex justify-end space-x-4">

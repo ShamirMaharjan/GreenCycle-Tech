@@ -6,6 +6,7 @@ const path = require("path");
 const fileUpload = require("express-fileupload");
 const fs = require("fs");
 const bodyParser = require("body-parser");
+const multer = require("multer");
 const { EsewaInitiatePayment, paymentStatus } = require("./controllers/esewa.controller.js");
 
 // Load environment variables
@@ -26,21 +27,54 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(fileUpload({
-  createParentPath: true,
-  limits: { fileSize: 5 * 1024 * 1024 },
-  abortOnLimit: true,
-  useTempFiles: false,
-}));
 
-// Ensure upload directory exists
-const uploadDir = path.join(__dirname, "uploads/verification");
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// app.use(fileUpload({
+//   createParentPath: true,
+//   limits: { fileSize: 5 * 1024 * 1024 },
+//   abortOnLimit: true,
+//   useTempFiles: false,
+// }));
+
+// // Ensure upload directory exists
+// const uploadDir = path.join(__dirname, "uploads/verification");
+// if (!fs.existsSync(uploadDir)) {
+//   fs.mkdirSync(uploadDir, { recursive: true });
+// }
 
 // Serve static files
-app.use("/uploads", express.static(uploadDir));
+// app.use("/uploads", express.static(uploadDir));
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "uploads")); // Save files to the uploads directory
+  },
+  filename: function (req, file, cb) {
+    cb(null, `${Date.now()}-${file.originalname}`); // Unique filename
+  },
+});
+
+const upload = multer({ storage: storage });
+
+//multer
+app.post("/upload", upload.single("verificationImage"), (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: "No file uploaded" });
+    }
+
+    // Log the uploaded file details
+    console.log("Uploaded file:", req.file);
+
+    // Respond with success message and file path
+    res.status(200).json({
+      message: "File uploaded successfully",
+      filePath: req.file.path,
+    });
+  } catch (error) {
+    console.error("Error uploading file:", error);
+    res.status(500).json({ error: "Failed to upload file" });
+  }
+});
 
 // Payment routes
 app.post("/initiate-payment", EsewaInitiatePayment);
