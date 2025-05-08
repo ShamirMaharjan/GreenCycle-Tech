@@ -3,7 +3,6 @@ const UserHistory = require("../models/UserHistory");
 const User = require("../models/User");
 
 // User schedules a pickup
-// User schedules a pickup
 exports.addScheduledCollection = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
@@ -26,7 +25,6 @@ exports.addScheduledCollection = async (req, res) => {
   }
 };
 
-
 // Get user's pending tasks (reminders)
 exports.getRemainders = async (req, res) => {
   try {
@@ -40,7 +38,6 @@ exports.getRemainders = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
-
 
 // Get user's completed pickups (history)
 exports.getUserHistory = async (req, res) => {
@@ -202,6 +199,50 @@ exports.getCollectorHistory = async (req, res) => {
     }).sort({ date: -1 });
 
     res.status(200).json({ success: true, data: history });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
+
+// Delete a pending scheduled task
+exports.deletePendingTask = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find the task
+    const task = await ScheduledCollection.findById(id);
+
+    if (!task) {
+      return res.status(404).json({ success: false, message: "Task not found" });
+    }
+
+    // Only allow deletion if task is in a pending status
+    const pendingStatuses = ["Booked", "Assigned", "Not Arrived", "On the Way"];
+    if (!pendingStatuses.includes(task.status)) {
+      return res.status(400).json({
+        success: false,
+        message: "Only tasks with pending status can be deleted"
+      });
+    }
+
+    // Allow only client who created it or an admin to delete
+    if (
+      req.user.role !== "admin" &&
+      String(task.clientId) !== String(req.user._id)
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not authorized to delete this task"
+      });
+    }
+
+    // Delete the task
+    await ScheduledCollection.findByIdAndDelete(id);
+
+    res.status(200).json({
+      success: true,
+      message: "Pending task deleted successfully"
+    });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }

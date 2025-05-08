@@ -10,7 +10,8 @@ const {
   getAssignedCollections,
   getTaskById,
   getGarbageCollectors,
-  getCollectorHistory
+  getCollectorHistory,
+  deletePendingTask 
 } = require("../controllers/scheduledCollection");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -43,5 +44,7 @@ router.put("/:id/status", authMiddleware, updateStatus);
 router.get("/gc/assigned", authMiddleware, getAssignedCollections);
 router.get("/gc/task/:id", authMiddleware, getTaskById);
 router.get("/gc/history", authMiddleware, getCollectorHistory); // Optional GC history
+router.delete("/:id", authMiddleware, deletePendingTask); // ✅ Delete pending task
+
 
 module.exports = router;
