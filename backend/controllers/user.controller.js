@@ -89,8 +89,8 @@ async function register(req, res) {
     }
 
     // Hash password before saving
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // const salt = await bcrypt.genSalt(10);
+    // const hashedPassword = await bcrypt.hash(password, salt);
 
     // Create temp user with isVerified: false for garbageCollector
     const tempUser = new TempUser({
@@ -98,7 +98,7 @@ async function register(req, res) {
       email,
       phoneNumber,
       address,
-      password: hashedPassword,
+      password,
       role,
       isVerified: role === "garbageCollector" ? false : true, // garbageCollector needs admin approval
       ...(role === "garbageCollector" && {
@@ -107,6 +107,9 @@ async function register(req, res) {
         licenseNumber
       })
     });
+
+    console.log("Plain Password During Registration:", password);
+    // console.log("Hashed Password During Registration:", hashedPassword);
 
     const savedTempUser = await tempUser.save();
 
@@ -181,7 +184,7 @@ async function login(req, res) {
 
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Invalid credentials" });
+      return res.status(401).json({ success: false, message: "Invalid password" });
     }
 
     const token = jwt.sign(
