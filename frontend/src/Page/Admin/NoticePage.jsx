@@ -16,7 +16,7 @@ const NoticesPage = () => {
     category: "",
   });
 
-  const categories = ["User", "Garbage Collector", "All"];
+  const categories = [ "All"];
 
   // Fetch notices from backend on mount
   useEffect(() => {
@@ -219,6 +219,13 @@ const NoticesPage = () => {
               </div>
             </div>
           )}
+
+          {/* Link to Contact Page */}
+          <div className="mt-8">
+            <Link to="/admincontact" className="text-indigo-600 hover:text-indigo-800">
+              View Contact
+            </Link>
+          </div>
         </div>
       </div>
     </div>

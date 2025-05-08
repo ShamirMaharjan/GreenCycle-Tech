@@ -4,46 +4,63 @@ import logo from "../../assets/logo.png";
 import sidebarBg from "../../assets/backgroundimage.png";
 
 const UsersPage = () => {
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: 'SAKSHAM',
-      email: 'SAKSHAM@GMAIL.COM',
-      phone: '9839393989',
-      address: 'HETAUDA',
-      category: 'USER'
-    },
-    {
-      id: 2,
-      name: 'RAM',
-      email: 'RAM@GMAIL.COM',
-      phone: '9800000000',
-      address: 'KATHMANDU',
-      category: 'GARBAGE COLLECTOR'
-    },
-    {
-      id: 3,
-      name: 'SITA',
-      email: 'SITA@GMAIL.COM',
-      phone: '9811111111',
-      address: 'BIRGUNJ',
-      category: 'USER'
-    },
-  ]);
-
+  const [users, setUsers] = useState([]);
   const [activeTab, setActiveTab] = useState('ALL');
   const [searchInput, setSearchInput] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [filteredUsers, setFilteredUsers] = useState(users);
+  const [filteredUsers, setFilteredUsers] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+
+  // Fetch users from backend
+  const fetchUsers = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.error("No token found. Please log in.");
+        return;
+      }
+
+      const response = await fetch("http://localhost:3000/api/users/all", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+
+      if (data.success && Array.isArray(data.data)) {
+        const formattedUsers = data.data
+          .filter(user => user.role === "garbageCollector" || user.role === "User")
+          .map(user => ({
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            phone: user.phoneNumber,
+            address: user.address,
+            isVerified: user.isVerified,
+            category: user.role === "garbageCollector" ? "GARBAGE COLLECTOR" : "USER",
+          }));
+
+        setUsers(formattedUsers);
+      } else {
+        console.error("Failed to fetch users: Invalid format", data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   useEffect(() => {
     const results = users.filter(user =>
       (activeTab === 'ALL' || user.category === activeTab) &&
       (user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-       user.email.toLowerCase().includes(searchQuery.toLowerCase()))
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()))
     );
     setFilteredUsers(results);
   }, [activeTab, searchQuery, users]);
@@ -53,13 +70,58 @@ const UsersPage = () => {
     setShowDeleteConfirm(true);
   };
 
-  const confirmDelete = () => {
-    const updatedUsers = users.filter(user => user.id !== userToDelete);
-    setUsers(updatedUsers);
-    setShowDeleteConfirm(false);
-    setShowDeleteSuccess(true);
-    setTimeout(() => setShowDeleteSuccess(false), 3000);
+  const confirmDelete = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:3000/api/users/${userToDelete}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        const updatedUsers = users.filter(user => user.id !== userToDelete);
+        setUsers(updatedUsers);
+        setShowDeleteConfirm(false);
+        setShowDeleteSuccess(true);
+        setTimeout(() => setShowDeleteSuccess(false), 3000);
+      } else {
+        console.error("Failed to delete user:", data.message);
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
   };
+
+  const handleApprove = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:3000/api/users/${id}/verify`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: true }) // Send the status here
+      });
+  
+      const data = await response.json();
+      if (data.success) {
+        setUsers(prevUsers =>
+          prevUsers.map(user =>
+            user.id === id ? { ...user, isVerified: true } : user
+          )
+        );
+      } else {
+        console.error("Approval failed:", data.message);
+      }
+    } catch (error) {
+      console.error("Error approving user:", error);
+    }
+  };
+  
 
   const cancelDelete = () => {
     setShowDeleteConfirm(false);
@@ -159,6 +221,14 @@ const UsersPage = () => {
                     <td className="px-6 py-4 text-sm">
                       <div className="flex space-x-2">
                         <button onClick={() => handleDeleteClick(user.id)} className="text-red-600 hover:text-red-800">🗑️</button>
+                        {user.category === "GARBAGE COLLECTOR" && !user.isVerified && (
+                          <button
+                            onClick={() => handleApprove(user.id)}
+                            className="text-green-600 hover:text-green-800"
+                          >
+                            ✅ Approve
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -169,7 +239,7 @@ const UsersPage = () => {
 
           {/* Delete Confirm Modal */}
           {showDeleteConfirm && (
-            <div className="absolute inset-0 flex items-center justify-center z-50">
+            <div className="absolute inset-0 flex items-center justify-center z-50 bg-black bg-opacity-30">
               <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-sm border border-gray-200">
                 <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
                 <p className="mb-6">Are you sure you want to delete this user?</p>

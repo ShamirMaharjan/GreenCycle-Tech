@@ -95,12 +95,27 @@ const RequestPage = () => {
     setShowConfirm(false);
   };
 
-  const handleReject = () => {
-    setRequests((prev) => prev.filter((r) => r._id !== selectedId));
-    setSelectedId(null);
-    setShowConfirm(false);
-    setShowDeleteSuccess(true);
-    setTimeout(() => setShowDeleteSuccess(false), 3000);
+  const handleReject = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Unauthorized');
+
+      await axios.delete(`http://localhost:3000/api/collections/${selectedId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      setRequests((prev) => prev.filter((r) => r._id !== selectedId));
+      setShowDeleteSuccess(true);
+    } catch (err) {
+      console.error('Delete failed:', err);
+      setError('Failed to delete request.');
+    } finally {
+      setSelectedId(null);
+      setShowConfirm(false);
+      setTimeout(() => setShowDeleteSuccess(false), 3000);
+    }
   };
 
   const openCollectorPopup = (collector, request) => {

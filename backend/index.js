@@ -9,6 +9,8 @@ const bodyParser = require("body-parser");
 const multer = require("multer");
 const { EsewaInitiatePayment, paymentStatus } = require("./controllers/esewa.controller.js");
 
+
+
 // Load environment variables
 dotenv.config();
 
@@ -17,11 +19,13 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // CORS configuration
-const corsOptions = {
-  origin: 'http://localhost:5173',  // Allow only your frontend origin
-  credentials: true,  // Allow cookies and credentials
-};
-app.use(cors(corsOptions));
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:5174"], // ✅ Supports both ports
+    credentials: true,
+  })
+);
+
 
 // Middleware
 app.use(express.json());
@@ -85,6 +89,13 @@ app.use("/api/users", require("./routes/user"));
 app.use("/api/articles", require("./routes/articles"));
 app.use("/api/notices", require("./routes/notice"));
 app.use("/api/collections", require("./routes/scheduledCollection")); // ✅ scheduled routes
+
+// Import the contact routes
+const contactRoutes = require('./routes/contactRoutes');
+
+// Register the contact routes under the '/contact' path
+app.use('/api/contact', contactRoutes)
+
 
 // Health Check
 app.get("/health", (req, res) => {

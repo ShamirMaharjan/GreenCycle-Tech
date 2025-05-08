@@ -13,7 +13,8 @@ const Login = ({ setIsSignup }) => {
     e.preventDefault();
     try {
       const res = await axios.post("http://localhost:3000/api/users/login", { email, password });
-      alert(res.data.message);
+      
+      // Removed alert for success message
       const { role } = res.data.user;
       localStorage.setItem('role', role);
       localStorage.setItem('user', JSON.stringify(res.data.user));
@@ -67,7 +68,6 @@ const Login = ({ setIsSignup }) => {
             required
           />
 
-          {/* Update Login component's Forgot Password link */}
           <span
             onClick={() => navigate('/forgot-password')}
             className="text-blue-600 text-sm text-left cursor-pointer hover:underline"
@@ -86,7 +86,7 @@ const Login = ({ setIsSignup }) => {
         <p className="mt-4 text-center text-sm text-gray-700">
           NOT YET A MEMBER?{" "}
           <span
-            onClick={() => navigate('/signup/user')}  // Switch to Signup when clicked
+            onClick={() => navigate('/signup/user')}
             className="text-green-600 font-semibold cursor-pointer"
           >
             SIGNUP NOW
