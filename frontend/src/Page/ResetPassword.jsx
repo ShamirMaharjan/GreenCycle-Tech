@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import bgImage from '../assets/backgroundimage.png';
 import logo from '../assets/logo.png';
-
+import { toast } from 'react-hot-toast';
 const ResetPassword = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -32,10 +32,19 @@ const ResetPassword = () => {
                 otp,
                 newPassword: password
             });
+            toast.success("Password Reset Successfully", {
+                duration: 3000,
+                position: 'top-right',
+            });
             navigate('/login');
-            alert('Password reset successfully!');
+
         } catch (error) {
-            setMessage(error.response?.data?.message || 'Password reset failed. Please try again.');
+
+            // Error toast notification
+            toast.error(error.response?.data?.message || 'Password reset failed. Please try again.', {
+                duration: 3000,
+                position: 'top-right',
+            });
         }
         setIsLoading(false);
     };

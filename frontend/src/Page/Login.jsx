@@ -3,6 +3,7 @@ import axios from 'axios';
 import logo from '../assets/logo.png';
 import bgImage from '../assets/backgroundimage.png'; // Background image
 import { useNavigate } from 'react-router-dom';
+import { toast, Toaster } from 'react-hot-toast';
 
 const Login = ({ setIsSignup }) => {
   const [email, setEmail] = useState('');
@@ -13,7 +14,12 @@ const Login = ({ setIsSignup }) => {
     e.preventDefault();
     try {
       const res = await axios.post("http://localhost:3000/api/users/login", { email, password });
-      
+
+      // Success message using react-hot-toast
+      toast.success('Login successful!', {
+        duration: 2000, // Duration in milliseconds
+        position: 'top-right', // Position of the toast
+      });
       // Removed alert for success message
       const { role } = res.data.user;
       localStorage.setItem('role', role);
@@ -21,14 +27,18 @@ const Login = ({ setIsSignup }) => {
       if (res.data.token) localStorage.setItem('token', res.data.token);
 
       if (role === 'admin') {
-        navigate('/adminHome');
+        navigate('/users');
       } else if (role === 'garbageCollector') {
         navigate('/gcHome');
       } else {
         navigate('/userHome');
       }
     } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong");
+      // Error message using react-hot-toast
+      toast.error(err.response?.data?.message || "Something went wrong", {
+        duration: 3000,
+        position: 'top-right',
+      });
     }
   };
 
@@ -39,6 +49,7 @@ const Login = ({ setIsSignup }) => {
     >
       {/* Overlay */}
       <div className="absolute inset-0 bg-black opacity-50"></div>
+
 
       <div className="relative z-10 w-full max-w-md p-8 bg-white bg-opacity-90 shadow-lg rounded-lg">
         <div className="flex justify-center mb-4">

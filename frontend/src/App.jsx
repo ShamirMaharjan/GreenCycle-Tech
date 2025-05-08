@@ -14,7 +14,6 @@ import EditPostPage from "./Page/Admin/EditPostPage";
 import NoticePage from "./Page/Admin/NoticePage";
 import AdminContact from "./Page/Admin/AdminContactpage";
 import RequestPage from "./Page/Admin/Requestpage";
-import TrafficePage from "./Page/Admin/TrafficePage";
 import CollectorHistoryPage from "./Page/Admin/CollectorHistoryPage";
 import UsersPage from "./Page/Admin/UsersPage";
 import GCHomePage from "./Page/GC/GCHomePage";
@@ -31,9 +30,35 @@ import OtpVerification from "./Page/OtpVerification";
 import ForgotPassword from "./Page/ForgotPassword";
 import ResetPassword from "./Page/ResetPassword";
 import VerifyResetOTP from "./Page/VerifyResetOTP";
+import { Toaster } from "react-hot-toast";
 function App() {
   return (
     <div>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          style: {
+            fontSize: '20px', // Increase font size
+            padding: '10px',  // Add more padding
+            minWidth: '225px', // Set a minimum width
+            background: '#fff', // Customize background color
+            color: '#4caf50',       // Customize text color
+            borderRadius: '10px', // Add rounded corners
+          },
+          success: {
+            iconTheme: {
+              primary: '#4caf50', // Success icon color
+              secondary: '#fff',  // Background color for the icon
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#f44336', // Error icon color
+              secondary: '#fff',  // Background color for the icon
+            },
+          },
+        }}
+      />
       <Routes>
         {/* Authentication Routes */}
         <Route path="/signup/user" element={<UserSignup />} />
@@ -52,15 +77,14 @@ function App() {
         <Route path="/schedule/new" element={<CollectionForm />} />
 
         {/* Admin Routes */}
-        <Route path="/adminHome" element={<AdminHomePage />} />
+        {/* <Route path="/adminHome" element={<AdminHomePage />} /> */}
         <Route path="/addPost" element={<AddPostPage />} />
         <Route path="/editPost" element={<EditPostPage />} />
         <Route path="/notice" element={<NoticePage />} />
-        <Route path="/traffic" element={<TrafficePage />} />
         <Route path="/Requestpage" element={<RequestPage />} />
         <Route path="/GarbageCollectorHistory" element={<CollectorHistoryPage />} />
         <Route path="/users" element={<UsersPage />} />
-        <Route path="/Admincontact" element={<AdminContact/>} />
+        <Route path="/Admincontact" element={<AdminContact />} />
 
         {/* Garbage Collector Routes */}
         <Route path="/gcHome" element={<GCHomePage />} />

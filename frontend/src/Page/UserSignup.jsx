@@ -3,7 +3,7 @@ import axios from 'axios';
 import logo from '../assets/logo.png';
 import bgImage from '../assets/backgroundimage.png';
 import { useNavigate } from 'react-router-dom';
-
+import { toast } from 'react-hot-toast';
 const UserSignup = () => {
   const [formData, setFormData] = useState({
     username: "",
@@ -71,6 +71,10 @@ const UserSignup = () => {
 
     try {
       const res = await axios.post("http://localhost:3000/api/users/register", updatedFormData);
+      toast.success("Registration successful! Please verify your OTP.", {
+        duration: 3000,
+        position: 'top-right',
+      });
       navigate('/otp-verification', {
         state: {
           tempUserId: res.data.tempUserId,
@@ -78,7 +82,10 @@ const UserSignup = () => {
         }
       });
     } catch (err) {
-      setFormErrors({ server: err.response?.data?.message || "Something went wrong" });
+      toast.error(err.response?.data?.message || "Something went wrong during registration.", {
+        duration: 3000,
+        position: 'top-right',
+      });
     }
   };
 

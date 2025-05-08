@@ -4,7 +4,8 @@ import Sidebar from '../../components/GCSidebar';
 import { Button } from '../../components/ui/button';
 import { ArrowRight, CheckCircle, RecycleIcon, Truck } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
+import { Card, CardContent } from '@/components/ui/card';
+import { ChevronRight, Recycle, Calendar, Clock, User, Phone } from 'lucide-react';
 const GCHomePage = () => {
     return (
         <div className="flex min-h-screen bg-gray-50">
@@ -34,32 +35,54 @@ const GCHomePage = () => {
                         </div>
                     </section>
 
-                    {/* Services Section */}
-                    <section className="mb-16">
-                        <h2 className="text-3xl font-bold mb-8 text-center text-green-800">Our Waste Management Solutions</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                                <div className="bg-green-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                                    <RecycleIcon className="h-8 w-8 text-green-600" />
-                                </div>
-                                <h3 className="text-xl font-semibold mb-2 text-gray-800">Recycling Services</h3>
-                                <p className="text-gray-600">Professional sorting and processing of recyclable materials to minimize environmental impact.</p>
+                    <section className="py-20 bg-gray-50">
+                        <div className="container max-w-7xl mx-auto px-4 md:px-6">
+                            <div className="text-center max-w-3xl mx-auto mb-16">
+                                <h2 className="text-3xl font-bold text-gray-900 mb-4">How GreenCycle Works</h2>
+                                <p className="text-lg text-gray-600">
+                                    Our platform makes waste management simple, efficient, and environmentally friendly.
+                                </p>
                             </div>
-
-                            <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                                <div className="bg-green-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                                    <Truck className="h-8 w-8 text-green-600" />
-                                </div>
-                                <h3 className="text-xl font-semibold mb-2 text-gray-800">Waste Collection</h3>
-                                <p className="text-gray-600">Scheduled pickups and efficient waste removal services for residential and commercial needs.</p>
-                            </div>
-
-                            <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
-                                <div className="bg-green-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                                    <CheckCircle className="h-8 w-8 text-green-600" />
-                                </div>
-                                <h3 className="text-xl font-semibold mb-2 text-gray-800">Waste Auditing</h3>
-                                <p className="text-gray-600">Comprehensive waste assessment and consulting to optimize your waste management practices.</p>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                                    <CardContent className="pt-6">
+                                        <div className="flex flex-col items-center text-center">
+                                            <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                                <Calendar className="h-6 w-6 text-green-600" />
+                                            </div>
+                                            <h3 className="text-xl font-semibold mb-2">Schedule Collection</h3>
+                                            <p className="text-gray-600">
+                                                Easily schedule waste collection at your preferred time and location.
+                                            </p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                                    <CardContent className="pt-6">
+                                        <div className="flex flex-col items-center text-center">
+                                            <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                                <Clock className="h-6 w-6 text-green-600" />
+                                            </div>
+                                            <h3 className="text-xl font-semibold mb-2">Track History</h3>
+                                            <p className="text-gray-600">
+                                                Monitor your waste management history and contribution to sustainability.
+                                            </p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
+                                <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
+                                    <CardContent className="pt-6">
+                                        <div className="flex flex-col items-center text-center">
+                                            <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
+                                                <Phone className="h-6 w-6 text-green-600" />
+                                            </div>
+                                            <h3 className="text-xl font-semibold mb-2">Get Support</h3>
+                                            <p className="text-gray-600">
+                                                Connect with our team for any questions or support regarding waste management.
+                                            </p>
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             </div>
                         </div>
                     </section>

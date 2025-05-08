@@ -4,7 +4,7 @@ import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import bgImage from '../assets/backgroundimage.png';
 import logo from '../assets/logo.png';
-
+import { toast } from 'react-hot-toast';
 const OtpVerification = () => {
     const [otp, setOtp] = useState('');
     const [isResending, setIsResending] = useState(false);
@@ -25,11 +25,18 @@ const OtpVerification = () => {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 localStorage.setItem('role', response.data.user.role);
+                toast.success("OTP verified successfully!", {
+                    duration: 3000,
+                    position: 'top-right',
+                });
 
                 navigate(response.data.user.role === 'garbageCollector' ? '/gchome' : '/userHome');
             }
         } catch (error) {
-            alert(error.response?.data?.message || 'Verification failed');
+            toast.error(error.response?.data?.message || "Verification failed", {
+                duration: 3000,
+                position: 'top-right',
+            });
         }
     };
 
@@ -40,9 +47,18 @@ const OtpVerification = () => {
                 tempUserId,
                 email
             });
-            alert('New OTP sent successfully');
+            toast.success("New OTP sent successfully!", {
+                duration: 3000,
+                position: 'top-right',
+            });
         } catch (error) {
-            alert(error.response?.data?.message || 'Failed to resend OTP');
+            console.error('Error resending OTP:', error);
+
+            // Error toast notification
+            toast.error(error.response?.data?.message || "Failed to resend OTP", {
+                duration: 3000,
+                position: 'top-right',
+            });
         }
         setIsResending(false);
     };

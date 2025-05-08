@@ -4,6 +4,7 @@ import Sidebar from '../../components/Sidebar';
 import { Button } from '../../components/ui/button';
 import { ArrowRight, CheckCircle, RecycleIcon, Truck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Reminders from '@/components/Reminders';
 
 const HomePage = () => {
     return (
@@ -36,7 +37,8 @@ const HomePage = () => {
 
                     {/* Services Section */}
                     <section className="mb-16">
-                        <h2 className="text-3xl font-bold mb-8 text-center text-green-800">Our Waste Management Solutions</h2>
+                        <Reminders />
+                        {/* <h2 className="text-3xl font-bold mb-8 text-center text-green-800">Our Waste Management Solutions</h2>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <div className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
                                 <div className="bg-green-100 p-4 rounded-full w-16 h-16 flex items-center justify-center mb-4">
@@ -61,7 +63,7 @@ const HomePage = () => {
                                 <h3 className="text-xl font-semibold mb-2 text-gray-800">Waste Auditing</h3>
                                 <p className="text-gray-600">Comprehensive waste assessment and consulting to optimize your waste management practices.</p>
                             </div>
-                        </div>
+                        </div> */}
                     </section>
 
                     {/* Stats Section */}
@@ -97,6 +99,7 @@ const HomePage = () => {
                             </Button>
                         </Link>
                     </section>
+
                 </div>
             </div>
         </div>

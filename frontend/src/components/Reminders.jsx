@@ -27,7 +27,7 @@ const Reminders = () => {
     const fetchReminders = async () => {
       // Check for token in multiple possible locations
       const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-      
+
       if (!token) {
         setError('Authentication required. Redirecting to login...');
         setTimeout(() => navigate('/login'), 2000);
@@ -55,7 +55,7 @@ const Reminders = () => {
         }
 
         const data = await response.json();
-        
+
         // More robust data validation
         if (!data || !data.success) {
           throw new Error(data.message || 'Invalid response format');
@@ -85,7 +85,7 @@ const Reminders = () => {
   const handleRetry = () => {
     setError(null);
     setLoading(true);
-    useEffect(() => {}, []); // This will re-run the effect
+    useEffect(() => { }, []); // This will re-run the effect
   };
 
   return (
@@ -115,7 +115,7 @@ const Reminders = () => {
               <p className="text-sm text-red-700">
                 {error}
                 {error.includes('expired') && (
-                  <button 
+                  <button
                     onClick={() => navigate('/login')}
                     className="ml-2 text-sm font-medium text-red-600 hover:text-red-500"
                   >
@@ -123,7 +123,7 @@ const Reminders = () => {
                   </button>
                 )}
                 {!error.includes('expired') && (
-                  <button 
+                  <button
                     onClick={handleRetry}
                     className="ml-2 text-sm font-medium text-red-600 hover:text-red-500"
                   >

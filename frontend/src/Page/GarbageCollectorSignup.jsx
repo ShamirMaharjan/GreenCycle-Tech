@@ -3,7 +3,8 @@ import axios from 'axios';
 import logo from '../assets/logo.png';
 import bgImage from '../assets/backgroundimage.png';
 import { useNavigate } from 'react-router-dom';
-
+import { toast } from 'react-hot-toast';
+import { IoMdInformationCircle } from "react-icons/io";
 const GarbageCollectorSignup = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -40,15 +41,24 @@ const GarbageCollectorSignup = () => {
     e.preventDefault();
     const phoneNumber = formData.phoneNumber.replace(/\D/g, '');
     if (phoneNumber.length !== 10) {
-      alert('Phone number must be exactly 10 digits');
+      toast.error('Phone number must be exactly 10 digits', {
+        duration: 3000,
+        position: 'top-right',
+      });
       return;
     }
     if (formData.password !== formData.confirmPassword) {
-      alert("Passwords do not match");
+      toast.error("Passwords do not match", {
+        duration: 3000,
+        position: 'top-right',
+      });
       return;
     }
     if (!validatePassword(formData.password)) {
-      alert("Password does not meet the requirements");
+      toast.error("Password does not meet the requirements", {
+        duration: 3000,
+        position: 'top-right',
+      });
       return;
     }
     setStep(2);
@@ -57,7 +67,10 @@ const GarbageCollectorSignup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.vehicleNumber || !formData.collectionArea || !formData.licenseNumber) {
-      alert("Please fill all garbage collector details");
+      toast.error("Please fill all garbage collector details", {
+        duration: 3000,
+        position: 'top-right',
+      });
       return;
     }
 
@@ -76,6 +89,10 @@ const GarbageCollectorSignup = () => {
     };
     try {
       const res = await axios.post("http://localhost:3000/api/users/register", updatedFormData);
+      toast.success("Registration successful! Please verify your OTP.", {
+        duration: 3000,
+        position: 'top-right',
+      });
       navigate('/otp-verification', {
         state: {
           tempUserId: res.data.tempUserId,
@@ -83,7 +100,10 @@ const GarbageCollectorSignup = () => {
         }
       });
     } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong during registration");
+      toast.error(err.response?.data?.message || "Something went wrong during registration", {
+        duration: 3000,
+        position: 'top-right',
+      });
     }
   };
 
@@ -221,6 +241,11 @@ const GarbageCollectorSignup = () => {
               onChange={handleChange}
               required
             />
+            <div className="flex items-center text-sm text-gray-700 space-x-2">
+              <IoMdInformationCircle className="text-lg text-green-600" />
+              <span>Admin must approve you first before you can start collecting waste.</span>
+            </div>
+
             {/* <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 UPLOAD VERIFICATION DOCUMENT (License or ID)

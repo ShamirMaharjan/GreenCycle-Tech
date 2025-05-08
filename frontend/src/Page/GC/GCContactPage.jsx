@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const GCContactPage = () => {
     const [userData, setUserData] = useState({
@@ -55,11 +56,18 @@ const GCContactPage = () => {
                     'Authorization': `Bearer ${token}`,
                 }
             });
-            alert('Message sent successfully!');
+            // Success toast notification
+            toast.success('Message sent successfully!', {
+                duration: 3000,
+                position: 'top-right',
+            });
             setFormData({ subject: '', message: '' });  // Clear form after submission
         } catch (error) {
             console.error('Error sending message:', error);
-            alert('Failed to send message');
+            toast.error(err.response?.data?.message || "Something went wrong", {
+                duration: 3000,
+                position: 'top-right',
+            });
         }
     };
 

@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import sidebarBg from '../../assets/backgroundimage.png';
 import axios from 'axios';
-
+import { toast } from 'react-hot-toast';
 const RequestPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -43,7 +43,10 @@ const RequestPage = () => {
           throw new Error('Invalid data format');
         }
       } catch (err) {
-        setError('Failed to load requests');
+        toast.error(err.response?.data?.message || "Something went wrong", {
+          duration: 3000,
+          position: 'top-right',
+        });
         console.error(err);
       } finally {
         setLoading(false);
@@ -107,9 +110,16 @@ const RequestPage = () => {
       });
 
       setRequests((prev) => prev.filter((r) => r._id !== selectedId));
+      toast.success("Request deleted successfully!", {
+        duration: 3000,
+        position: 'top-right',
+      });
       setShowDeleteSuccess(true);
     } catch (err) {
-      console.error('Delete failed:', err);
+      toast.error(err.response?.data?.message || "Something went wrong", {
+        duration: 3000,
+        position: 'top-right',
+      });
       setError('Failed to delete request.');
     } finally {
       setSelectedId(null);
@@ -156,8 +166,8 @@ const RequestPage = () => {
             <h2 className="text-lg font-bold text-white text-center">GREEN CYCLE TECH</h2>
           </div>
           <div className="relative z-10 space-y-1">
-            <Link to="/adminHome" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">HOME</Link>
-            <Link to="/users" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">USERS</Link>
+            {/* <Link to="/adminHome" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">HOME</Link> */}
+            <Link to="/users" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">DASHBOARD</Link>
             <Link to="/notice" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">NOTICE</Link>
             <Link to="/requestPage" className="block w-full px-4 py-2 bg-white text-green-600 rounded">REQUEST</Link>
           </div>

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { ChevronLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import { toast } from 'react-hot-toast';
 
 const CollectionForm = () => {
     const navigate = useNavigate();
@@ -24,28 +25,7 @@ const CollectionForm = () => {
         }
     }, []);
 
-    useEffect(() => {
-        const fetchReminders = async () => {
-            try {
-                const token = localStorage.getItem('token');
-                console.log("Frontend Token (fetchReminders):", token);
 
-                const res = await fetch('http://localhost:3000/api/collections/remainders', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-
-                const data = await res.json();
-                setReminders(Array.isArray(data) ? data : []);
-            } catch (err) {
-                console.error('Error fetching reminders:', err);
-                setReminders([]);
-            }
-        };
-
-        fetchReminders();
-    }, []);
 
     const handleSubmit = async () => {
         try {
@@ -66,19 +46,29 @@ const CollectionForm = () => {
             if (response.ok) {
                 console.log('Collection scheduled:', result);
                 // Set success message
-                setSuccessMessage('Collection scheduled successfully!');
+                toast.success('Collection scheduled successfully!', {
+                    duration: 3000,
+                    position: 'top-right',
+                });
                 // Reset form fields
                 setDate('');
                 setLocation('');
                 setDescription('');
                 // Optionally, refresh reminders
-                fetchReminders();
+                // fetchReminders();
             } else {
                 console.error('Failed to schedule collection:', result.message || result.error);
-                alert(result.message || "Failed to schedule collection.");
+                toast.error(result.message || "Failed to schedule collection.", {
+                    duration: 3000,
+                    position: 'top-right',
+                });
             }
         } catch (error) {
             console.error('Error submitting schedule:', error);
+            toast.error(error.message || "Something went wrong.", {
+                duration: 3000,
+                position: 'top-right',
+            });
         }
     };
 

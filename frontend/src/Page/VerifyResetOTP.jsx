@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import bgImage from '../assets/backgroundimage.png';
 import logo from '../assets/logo.png';
+import { toast } from 'react-hot-toast';
 
 const VerifyResetOTP = () => {
     const [otp, setOtp] = useState('');
@@ -25,10 +26,19 @@ const VerifyResetOTP = () => {
                 email,
                 otp
             });
-            setMessage(response.data.message);
+
+            toast.success(response.data.message, {
+                duration: 3000,
+                position: 'top-right',
+            });
             navigate('/reset-password', { state: { email, otp } });
         } catch (error) {
-            setMessage(error.response?.data?.message || 'OTP verification failed. Please try again.');
+
+            // Error toast notification
+            toast.error(error.response?.data?.message || 'OTP verification failed. Please try again.', {
+                duration: 3000,
+                position: 'top-right',
+            });
         }
         setIsLoading(false);
     };

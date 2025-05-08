@@ -57,8 +57,8 @@ const AdminContactPage = () => {
             <h2 className="text-lg font-bold text-white text-center">GREEN CYCLE TECH</h2>
           </div>
           <div className="relative z-10 space-y-1">
-            <Link to="/adminhome" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">Home</Link>
-            <Link to="/users" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">USERS</Link>
+            {/* <Link to="/adminhome" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">Home</Link> */}
+            <Link to="/users" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">DASHBOARD</Link>
             <Link to="/notice" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">NOTICE</Link>
             <Link to="/requestPage" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">REQUEST</Link>
           </div>

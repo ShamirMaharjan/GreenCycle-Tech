@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import axios from 'axios';
-
+import { toast } from 'react-hot-toast';
 const ContactPage = () => {
     const [userData, setUserData] = useState({
         name: '',
@@ -45,7 +45,10 @@ const ContactPage = () => {
         const token = localStorage.getItem('token');  // Get the token from localStorage
 
         if (!token) {
-            alert('No token found. Please log in again.');
+            toast.error('No token found. Please log in again.', {
+                duration: 3000,
+                position: 'top-right',
+            });
             return;
         }
 
@@ -65,11 +68,18 @@ const ContactPage = () => {
                     'Authorization': `Bearer ${token}`,  // Send the token for authorization
                 }
             });
-            alert('Message sent successfully!');
+            toast.success('Message sent successfully!', {
+                duration: 3000,
+                position: 'top-right',
+            });
+
             setFormData({ subject: '', message: '' });  // Clear form after submission
         } catch (error) {
             console.error('Error sending message:', error);
-            alert('Failed to send message');
+            toast.error(error.response?.data?.message || "Failed to send message", {
+                duration: 3000,
+                position: 'top-right',
+            });
         }
     };
 

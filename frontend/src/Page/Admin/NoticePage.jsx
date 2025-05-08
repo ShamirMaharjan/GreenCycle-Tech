@@ -3,6 +3,7 @@ import axios from "axios";
 import { Link } from "react-router-dom";
 import logo from "../../assets/logo.png";
 import sidebarBg from "../../assets/backgroundimage.png";
+import { toast } from "react-hot-toast";
 
 const NoticesPage = () => {
   const [notices, setNotices] = useState([]);
@@ -16,7 +17,7 @@ const NoticesPage = () => {
     category: "",
   });
 
-  const categories = [ "All"];
+  const categories = ["All"];
 
   // Fetch notices from backend on mount
   useEffect(() => {
@@ -25,7 +26,11 @@ const NoticesPage = () => {
         const { data } = await axios.get("http://localhost:3000/api/notices");
         setNotices(data);
       } catch (error) {
-        console.error("Error fetching notices:", error);
+        toast.error(err.response?.data?.message || "Something went wrong", {
+          duration: 3000,
+          position: 'top-right',
+        });
+
       }
     };
     fetchNotices();
@@ -42,10 +47,19 @@ const NoticesPage = () => {
       await axios.delete(`http://localhost:3000/api/notices/${noticeToDelete}`);
       setNotices(notices.filter((n) => n._id !== noticeToDelete));
       setShowDeleteConfirm(false);
+
       setShowDeleteSuccess(true);
+      toast.success("Notice deleted successfully!", {
+        duration: 3000,
+        position: 'top-right',
+      });
       setTimeout(() => setShowDeleteSuccess(false), 3000);
     } catch (error) {
-      console.error("Failed to delete notice:", error);
+      toast.error(err.response?.data?.message || "Something went wrong", {
+        duration: 3000,
+        position: 'top-right',
+      });
+
     }
   };
 
@@ -66,8 +80,17 @@ const NoticesPage = () => {
       setNotices([data, ...notices]);
       setNewNotice({ title: "", description: "", category: "" });
       setShowAddForm(false);
+      toast.success("Notice added successfully!", {
+        duration: 3000,
+        position: 'top-right',
+      });
     } catch (error) {
-      console.error("Failed to add notice:", error);
+      toast.error(err.response?.data?.message || "Something went wrong", {
+        duration: 3000,
+        position: 'top-right',
+      });
+
+
     }
   };
 
@@ -94,8 +117,8 @@ const NoticesPage = () => {
             <h2 className="text-lg font-bold text-white text-center">GREEN CYCLE TECH</h2>
           </div>
           <div className="relative z-10 space-y-1">
-            <Link to="/adminhome" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">Home</Link>
-            <Link to="/users" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">USERS</Link>
+            {/* <Link to="/adminhome" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">Home</Link> */}
+            <Link to="/users" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">DASHBOARD</Link>
             <Link to="/notice" className="block px-4 py-2 bg-white text-green-600 rounded">NOTICE</Link>
             <Link to="/requestPage" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">REQUEST</Link>
           </div>

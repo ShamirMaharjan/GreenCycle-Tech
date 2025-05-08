@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import bgImage from '../assets/backgroundimage.png';
 import logo from '../assets/logo.png';
+import { toast } from 'react-hot-toast';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
@@ -16,10 +17,17 @@ const ForgotPassword = () => {
         setIsLoading(true);
         try {
             const response = await axios.post('http://localhost:3000/api/users/forgot-password', { email });
-            setMessage(response.data.message);
+            toast.success(response.data.message || "OTP sent successfully!", {
+                duration: 3000,
+                position: 'top-right',
+            });
             navigate('/verify-reset-otp', { state: { email } });
         } catch (error) {
-            setMessage(error.response?.data?.message || 'Error sending OTP');
+
+            toast.error(error.response?.data?.message || "Failed to send OTP.", {
+                duration: 3000,
+                position: 'top-right',
+            });
         }
         setIsLoading(false);
     };
