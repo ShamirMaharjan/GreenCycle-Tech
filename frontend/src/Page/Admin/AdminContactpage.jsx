@@ -67,7 +67,7 @@ const AdminContactPage = () => {
         {/* Main Content */}
         <div className="flex-1 p-8">
           <header className="mb-6">
-            <h2 className="text-2xl font-bold text-black">CONTACT PAGE</h2>
+            <h2 className="text-2xl font-bold text-black">Feedback PAGE</h2>
           </header>
 
           {/* Display Messages */}

@@ -26,7 +26,7 @@ const OtpVerification = () => {
                 localStorage.setItem('user', JSON.stringify(response.data.user));
                 localStorage.setItem('role', response.data.user.role);
 
-                navigate(response.data.user.role === 'garbageCollector' ? '/gchome' : '/userHome');
+                navigate(response.data.user.role === 'garbageCollector' ? '/login' : '/userHome');
             }
         } catch (error) {
             alert(error.response?.data?.message || 'Verification failed');
