@@ -479,8 +479,8 @@ async function resetPassword(req, res) {
 
     // Update password
     const salt = await bcrypt.genSalt(10);
-
-    user.password = newPassword;
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    user.password = hashedPassword;
 
     // Log the new password hash for debugging
     console.log("New Password :", user.password);

@@ -16,12 +16,6 @@ const NoticesPage = () => {
     category: "All", // Automatically set to "All"
   });
 
-<<<<<<< HEAD
-  const categories = ["All"];
-
-  // Fetch notices from backend on mount
-=======
->>>>>>> integrate
   useEffect(() => {
     const fetchNotices = async () => {
       try {
@@ -46,12 +40,7 @@ const NoticesPage = () => {
     try {
       await axios.delete(`http://localhost:3000/api/notices/${noticeToDelete}`);
       setNotices(notices.filter((n) => n._id !== noticeToDelete));
-<<<<<<< HEAD
-      setShowDeleteConfirm(false);
-
-=======
       setNoticeToDelete(null);
->>>>>>> integrate
       setShowDeleteSuccess(true);
       toast.success("Notice deleted successfully!", {
         duration: 3000,

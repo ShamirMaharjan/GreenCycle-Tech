@@ -207,7 +207,7 @@ const UsersPage = () => {
           <div className="bg-white p-4 rounded-lg shadow mb-6 mt-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div className="flex space-x-2">
-                {['ALL', 'USER', 'GARBAGE COLLECTOR'].map(tab => (
+                {['ALL', 'Residents', 'GARBAGE COLLECTOR'].map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
