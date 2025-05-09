@@ -4,6 +4,7 @@ import logo from '../../assets/logo.png';
 import sidebarBg from '../../assets/backgroundimage.png';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+
 const RequestPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -11,6 +12,10 @@ const RequestPage = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [collectors, setCollectors] = useState([]);
+  const [selectedCollector, setSelectedCollector] = useState(null);
+  const [showCollectorSelect, setShowCollectorSelect] = useState(false);
+  const [requestToAssign, setRequestToAssign] = useState(null);
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
@@ -31,14 +36,18 @@ const RequestPage = () => {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Token not found');
 
-        const res = await axios.get('http://localhost:3000/api/collections/pending', {
+        const res = await axios.get('http://localhost:3000/api/scheduled-collection/pending', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        if (res.data.success && Array.isArray(res.data.data)) {
-          setRequests(res.data.data);
+        if (Array.isArray(res.data)) {
+          // Keep all requests that are not picked up yet
+          const activeRequests = res.data.filter(req => 
+            req.status !== 'Picked Up' && req.status !== 'Completed'
+          );
+          setRequests(activeRequests);
         } else {
           throw new Error('Invalid data format');
         }
@@ -53,7 +62,35 @@ const RequestPage = () => {
       }
     };
 
+    const fetchCollectors = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('Token not found');
+
+        const res = await axios.get('http://localhost:3000/api/users/all', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        console.log('Collectors response:', res.data);
+        
+        if (res.data.success && Array.isArray(res.data.data)) {
+          // Filter only garbage collectors
+          const garbageCollectors = res.data.data.filter(user => user.role === "garbageCollector");
+          setCollectors(garbageCollectors);
+        } else {
+          console.error('Invalid collectors data format:', res.data);
+          toast.error('Failed to load collectors data');
+        }
+      } catch (err) {
+        console.error('Error fetching collectors:', err);
+        toast.error('Failed to fetch garbage collectors');
+      }
+    };
+
     fetchRequests();
+    fetchCollectors();
   }, []);
 
   useEffect(() => {
@@ -67,14 +104,81 @@ const RequestPage = () => {
     }
   }, [location.state]);
 
-  const handleApprove = (id) => {
-    const request = requests.find((r) => r._id === id);
-    navigate(`/GarbageCollectorHistory`, { state: { request } });
+  const handleApprove = (request) => {
+    setRequestToAssign(request);
+    setShowCollectorSelect(true);
+  };
+
+  const handleAssignCollector = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Token not found');
+
+      if (!selectedCollector) {
+        throw new Error('Please select a collector');
+      }
+
+      // Get the request to assign from either requestToAssign or requestToReassign
+      const requestToProcess = requestToAssign || requestToReassign;
+      if (!requestToProcess) {
+        throw new Error('No request selected for assignment');
+      }
+
+      console.log('Sending assignment request:', {
+        collectionId: requestToProcess._id,
+        collectorId: selectedCollector._id
+      });
+
+      const response = await axios.post(
+        'http://localhost:3000/api/scheduled-collection/assign',
+        {
+          collectionId: requestToProcess._id,
+          collectorId: selectedCollector._id
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+        }
+      );
+
+      console.log('Assignment response:', response.data);
+
+      if (response.data) {
+        // Update the request status to Assigned but keep it in the list
+        setRequests((prev) =>
+          prev.map((req) =>
+            req._id === requestToProcess._id
+              ? { 
+                  ...req, 
+                  status: 'Assigned',
+                  collectorId: selectedCollector._id,
+                  assignedTo: selectedCollector
+                }
+              : req
+          )
+        );
+        toast.success('Collector assigned successfully!');
+        
+        // Close all modals and reset states
+        setShowCollectorSelect(false);
+        setShowReassignConfirm(false);
+        setShowCollectorInfo(false);
+        setRequestToAssign(null);
+        setRequestToReassign(null);
+        setSelectedCollector(null);
+      }
+    } catch (err) {
+      console.error('Error assigning collector:', err);
+      toast.error(err.message || err.response?.data?.message || 'Failed to assign collector');
+    }
   };
 
   const handleReassign = (request) => {
-    setRequestToReassign(request);
-    setShowReassignConfirm(true);
+    setRequestToAssign(request);
+    setShowCollectorSelect(true);
+    setShowCollectorInfo(false);
   };
 
   const cancelReassign = () => {
@@ -82,10 +186,32 @@ const RequestPage = () => {
     setShowReassignConfirm(false);
   };
 
-  const confirmReassign = () => {
-    navigate(`/GarbageCollectorHistory`, { state: { request: requestToReassign } });
-    setRequestToReassign(null);
-    setShowReassignConfirm(false);
+  const confirmReassign = async () => {
+    try {
+      // Fetch all collectors again to ensure we have the latest list
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Token not found');
+
+      const res = await axios.get('http://localhost:3000/api/users/all', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (res.data.success && Array.isArray(res.data.data)) {
+        // Filter only garbage collectors
+        const garbageCollectors = res.data.data.filter(user => user.role === "garbageCollector");
+        setCollectors(garbageCollectors);
+        setShowCollectorSelect(true);
+        setRequestToAssign(requestToReassign);
+        setShowReassignConfirm(false);
+      } else {
+        toast.error('Failed to load collectors for reassignment');
+      }
+    } catch (err) {
+      console.error('Error fetching collectors for reassignment:', err);
+      toast.error('Failed to load collectors for reassignment');
+    }
   };
 
   const confirmReject = (id) => {
@@ -103,7 +229,7 @@ const RequestPage = () => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Unauthorized');
 
-      await axios.delete(`http://localhost:3000/api/collections/${selectedId}`, {
+      await axios.delete(`http://localhost:3000/api/scheduled-collection/${selectedId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -129,7 +255,29 @@ const RequestPage = () => {
   };
 
   const openCollectorPopup = (collector, request) => {
-    setCollectorDetails({ ...collector, request });
+    console.log('Opening collector popup with:', { collector, request });
+    
+    if (!collector) {
+      console.error('No collector provided to openCollectorPopup');
+      toast.error('Collector information not available');
+      return;
+    }
+
+    // If collector is just an ID, find the full collector details
+    if (typeof collector === 'string') {
+      const foundCollector = collectors.find(c => c._id === collector);
+      if (foundCollector) {
+        setCollectorDetails({ ...foundCollector, request });
+      } else {
+        console.error('Could not find collector with ID:', collector);
+        toast.error('Collector information not found');
+        return;
+      }
+    } else {
+      // If collector is an object, use it directly
+      setCollectorDetails({ ...collector, request });
+    }
+    
     setShowCollectorInfo(true);
   };
 
@@ -196,7 +344,7 @@ const RequestPage = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        {['Name', 'Email', 'Phone No.', 'Address', 'Time', 'Actions'].map((header) => (
+                        {['Name', 'Email', 'Phone No.', 'Address', 'Time', 'Status', 'Actions'].map((header) => (
                           <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{header}</th>
                         ))}
                       </tr>
@@ -205,24 +353,35 @@ const RequestPage = () => {
                       {requests.map((req) => (
                         <tr key={req._id}>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientName || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientId?.email || '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientEmail || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientPhone || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientAddress || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.date ? new Date(req.date).toLocaleString() : '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap font-semibold">
+                            {req.status === 'Assigned' ? (
+                              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                Assigned
+                              </span>
+                            ) : (
+                              <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                Pending
+                              </span>
+                            )}
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-3">
                             <button onClick={() => confirmReject(req._id)} className="text-red-600 hover:text-red-900 text-xl">✗</button>
                             <button onClick={() => handleViewDetails(req)} className="text-blue-600 hover:text-blue-900 text-xl">👁️</button>
 
-                            {req.assignedTo ? (
+                            {req.status === 'Assigned' ? (
                               <button
-                                onClick={() => openCollectorPopup(req.assignedTo, req)}
+                                onClick={() => openCollectorPopup(req.collectorId || req.assignedTo, req)}
                                 className="text-green-600 hover:text-green-900 text-xl"
                               >
                                 Assigned
                               </button>
                             ) : (
                               <button
-                                onClick={() => handleApprove(req._id)}
+                                onClick={() => handleApprove(req)}
                                 className="text-green-600 hover:text-green-900 text-xl"
                               >
                                 ✓
@@ -256,28 +415,74 @@ const RequestPage = () => {
           </div>
         )}
 
-        {showCollectorInfo && collectorDetails && (
+        {/* Collector Selection Modal */}
+        {showCollectorSelect && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
-              <h2 className="text-xl font-bold text-green-700">Assigned Collector</h2>
-              <p><strong>Name:</strong> {collectorDetails.name}</p>
-              <p><strong>Phone:</strong> {collectorDetails.phone}</p>
-              <div className="flex justify-center gap-4 mt-4">
-                <button onClick={closeCollectorPopup} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Close</button>
-                <button onClick={() => handleReassign(collectorDetails.request)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Reassign</button>
+              <h2 className="text-xl font-bold text-green-700">Choose Garbage Collector</h2>
+              <div className="max-h-60 overflow-y-auto">
+                {collectors && collectors.length > 0 ? (
+                  collectors.map((collector) => (
+                    <div
+                      key={collector._id}
+                      className={`p-3 mb-2 rounded cursor-pointer ${
+                        selectedCollector?._id === collector._id
+                          ? 'bg-green-100 border-2 border-green-500'
+                          : 'hover:bg-gray-100'
+                      }`}
+                      onClick={() => {
+                        console.log('Selected collector:', collector);
+                        setSelectedCollector(collector);
+                      }}
+                    >
+                      <p className="font-semibold">{collector.name}</p>
+                      <p className="text-sm text-gray-600">Phone: {collector.phoneNumber}</p>
+                      <p className="text-sm text-gray-600">Email: {collector.email}</p>
+                      <p className="text-sm text-gray-600">Area: {collector.collectionArea}</p>
+                      <p className="text-sm text-gray-600">Pickups: {collector.pickups || 0}</p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-gray-500">No collectors available</p>
+                )}
+              </div>
+              <div className="flex justify-end space-x-2 mt-4">
+                <button
+                  onClick={() => {
+                    setShowCollectorSelect(false);
+                    setSelectedCollector(null);
+                  }}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAssignCollector}
+                  disabled={!selectedCollector}
+                  className={`px-4 py-2 rounded ${
+                    selectedCollector
+                      ? 'bg-green-500 text-white hover:bg-green-600'
+                      : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  }`}
+                >
+                  Assign
+                </button>
               </div>
             </div>
           </div>
         )}
 
-        {showReassignConfirm && requestToReassign && (
+        {showCollectorInfo && collectorDetails && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
-              <h2 className="text-xl font-bold text-green-700">Reassign Request</h2>
-              <p>Are you sure you want to reassign this request?</p>
+              <h2 className="text-xl font-bold text-green-700">Assigned Collector</h2>
+              <p><strong>Name:</strong> {collectorDetails.name}</p>
+              <p><strong>Phone:</strong> {collectorDetails.phoneNumber}</p>
+              <p><strong>Email:</strong> {collectorDetails.email}</p>
+              <p><strong>Area:</strong> {collectorDetails.collectionArea}</p>
               <div className="flex justify-center gap-4 mt-4">
-                <button onClick={cancelReassign} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Cancel</button>
-                <button onClick={confirmReassign} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Yes</button>
+                <button onClick={closeCollectorPopup} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Close</button>
+                <button onClick={() => handleReassign(collectorDetails.request)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Reassign</button>
               </div>
             </div>
           </div>

@@ -9,42 +9,28 @@ const {
   getUserHistory,
   getAssignedCollections,
   getTaskById,
-  getGarbageCollectors,
   getCollectorHistory,
-  deletePendingTask 
+  deletePendingTask,
+  getGarbageCollectors
 } = require("../controllers/scheduledCollection");
-
 const authMiddleware = require("../middleware/authMiddleware");
+const adminAuth = require("../middleware/adminAuth");
 
-const adminMiddleware = (req, res, next) => {
-  if (!req.user || req.user.role?.toLowerCase() !== "admin") {
-    return res.status(403).json({ message: "Access denied. Admins only." });
-  }
-  next();
-};
-
-// -----------------------
-// ✅ User routes
-// -----------------------
+// User routes
 router.post("/", authMiddleware, addScheduledCollection);
-router.get("/remainders", authMiddleware, getRemainders);
+router.get("/reminders", authMiddleware, getRemainders);
 router.get("/history", authMiddleware, getUserHistory);
+router.delete("/:id", authMiddleware, deletePendingTask);
 
-// -----------------------
-// 🔒 Admin routes
-// -----------------------
-router.get("/pending", authMiddleware, adminMiddleware, getPendingRequests);
-router.put("/assign", authMiddleware, adminMiddleware, assignCollector);
-router.get("/collectors", authMiddleware, adminMiddleware, getGarbageCollectors); // Optional route
+// Admin routes
+router.get("/pending", authMiddleware, adminAuth, getPendingRequests);
+router.get("/collectors", authMiddleware, adminAuth, getGarbageCollectors);
+router.post("/assign", authMiddleware, adminAuth, assignCollector);
 
-// -----------------------
-// 🚛 Garbage Collector routes
-// -----------------------
-router.put("/:id/status", authMiddleware, updateStatus);
-router.get("/gc/assigned", authMiddleware, getAssignedCollections);
-router.get("/gc/task/:id", authMiddleware, getTaskById);
-router.get("/gc/history", authMiddleware, getCollectorHistory); // Optional GC history
-router.delete("/:id", authMiddleware, deletePendingTask); // ✅ Delete pending task
-
+// Collector routes
+router.get("/assigned", authMiddleware, getAssignedCollections);
+router.get("/collector-history", authMiddleware, getCollectorHistory);
+router.get("/task/:id", authMiddleware, getTaskById);
+router.put("/status/:id", authMiddleware, updateStatus);
 
 module.exports = router;

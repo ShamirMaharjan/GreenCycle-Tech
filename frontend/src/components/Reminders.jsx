@@ -35,7 +35,7 @@ const Reminders = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:3000/api/collections/remainders', {
+        const response = await fetch('http://localhost:3000/api/scheduled-collection/reminders', {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'

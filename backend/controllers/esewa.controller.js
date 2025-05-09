@@ -34,6 +34,7 @@ const EsewaInitiatePayment = async (req, res) => {
             const transaction = new Transaction({
                 product_id: productId,
                 amount: amount,
+                userId: req.user._id
             });
             await transaction.save();
             console.log("Transaction saved successfully");
@@ -94,5 +95,30 @@ const paymentStatus = async (req, res) => {
     }
 };
 
+const checkUserPaymentStatus = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        
+        // Find the most recent transaction for the user
+        const transaction = await Transaction.findOne({ 
+            userId,
+            status: 'COMPLETE'
+        }).sort({ createdAt: -1 });
 
-module.exports = { EsewaInitiatePayment, paymentStatus };
+        if (!transaction) {
+            return res.status(200).json({ status: 'PENDING' });
+        }
+
+        // Check if the transaction is recent (within last 24 hours)
+        const isRecent = (new Date() - transaction.createdAt) < 24 * 60 * 60 * 1000;
+        
+        return res.status(200).json({ 
+            status: isRecent ? 'COMPLETE' : 'PENDING'
+        });
+    } catch (error) {
+        console.error("Error checking payment status:", error);
+        return res.status(500).json({ message: "Error checking payment status" });
+    }
+};
+
+module.exports = { EsewaInitiatePayment, paymentStatus, checkUserPaymentStatus };

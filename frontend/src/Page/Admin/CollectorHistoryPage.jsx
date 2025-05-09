@@ -1,105 +1,118 @@
-import React, { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import sidebarBg from '../../assets/backgroundimage.png';
+import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const CollectorHistoryPage = () => {
-  const location = useLocation();
   const navigate = useNavigate();
-  const { request } = location.state || {};
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showStatusModal, setShowStatusModal] = useState(false);
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
+  const [taskDetails, setTaskDetails] = useState(null);
 
-  const [collectors, setCollectors] = useState([]);
-  const [assignedCollectorIndex, setAssignedCollectorIndex] = useState(null);
-  const [assignedCollector, setAssignedCollector] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [searchInput, setSearchInput] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [filteredCollectors, setFilteredCollectors] = useState([]);
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) throw new Error('Token not found');
 
-  const fetchCollectors = async () => {
+        const res = await axios.get('http://localhost:3000/api/scheduled-collection/collector-tasks', {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (Array.isArray(res.data)) {
+          setTasks(res.data);
+        } else {
+          throw new Error('Invalid data format');
+        }
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Something went wrong", {
+          duration: 3000,
+          position: 'top-right',
+        });
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTasks();
+  }, []);
+
+  const handleUpdateStatus = async (taskId, newStatus) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch('http://localhost:3000/api/users/all', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      if (!token) throw new Error('Token not found');
 
-      const data = await response.json();
+      const response = await axios.put(
+        `http://localhost:3000/api/scheduled-collection/${taskId}/status`,
+        { status: newStatus },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-      if (data.success && Array.isArray(data.data)) {
-        // Filter collectors by role 'garbageCollector'
-        const filteredCollectors = data.data.filter(collector => collector.role === 'garbageCollector');
-        
-        const mappedCollectors = filteredCollectors.map(collector => ({
-          id: collector._id,
-          name: collector.name,
-          email: collector.email,
-          phone: collector.phoneNumber,
-          address: collector.address,
-          pickups: collector.pickups?.length || collector.history?.length || 0,
-        }));
-        setCollectors(mappedCollectors);
-      } else {
-        console.error('Failed to fetch collectors');
+      if (response.data) {
+        setTasks((prev) =>
+          prev.map((task) =>
+            task._id === taskId ? { ...task, status: newStatus } : task
+          )
+        );
+        toast.success('Status updated successfully!');
       }
-    } catch (error) {
-      console.error('Error fetching collectors:', error);
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update status');
+    } finally {
+      setShowStatusModal(false);
+      setSelectedTask(null);
     }
   };
 
-  useEffect(() => {
-    fetchCollectors();
-  }, []);
-
-  useEffect(() => {
-    const results = collectors.filter(c =>
-      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.email.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    setFilteredCollectors(results);
-  }, [searchQuery, collectors]);
-
-  const handleAssign = (collector, index) => {
-    setAssignedCollectorIndex(index);
-    setAssignedCollector(collector);
-    setIsModalOpen(true);
+  const handleViewDetails = (task) => {
+    setTaskDetails(task);
+    setShowTaskDetails(true);
   };
 
-  const closeModal = () => {
-    setIsModalOpen(false);
-    navigate('/requestPage', {
-      state: {
-        assigned: true,
-        requestId: request?.id,
-        collector: assignedCollector,
-      },
-    });
+  const closeTaskDetails = () => {
+    setTaskDetails(null);
+    setShowTaskDetails(false);
   };
 
-  const handleSearchClick = () => {
-    setSearchQuery(searchInput);
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'Assigned':
+        return 'bg-blue-100 text-blue-800';
+      case 'On the Way':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Completed':
+        return 'bg-green-100 text-green-800';
+      case 'Not Arrived':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
   };
-
-  if (!request) {
-    return (
-      <div className="h-screen flex items-center justify-center text-red-600 font-bold">
-        Invalid request data.
-        <button onClick={() => navigate(-1)} className="ml-4 underline text-blue-500">
-          Go Back
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white">
       <div className="flex min-h-screen relative z-10">
+        {/* Sidebar */}
         <div
           className="w-64 p-6 border-r border-gray-200 text-white relative"
           style={{
             backgroundImage: `url(${sidebarBg})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center',
-            backgroundRepeat: 'no-repeat',
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
           }}
         >
           <div className="relative z-10 flex flex-col items-center mb-10">
@@ -107,98 +120,139 @@ const CollectorHistoryPage = () => {
             <h2 className="text-lg font-bold text-white text-center">GREEN CYCLE TECH</h2>
           </div>
           <div className="relative z-10 space-y-1">
-            <button onClick={() => navigate('/adminHome')} className="block w-full text-left px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">Home</button>
-            <button onClick={() => navigate('/requestPage')} className="block w-full text-left px-4 py-2 bg-white text-green-600 rounded">Back to Requests</button>
+            <Link to="/collector-dashboard" className="block w-full px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">DASHBOARD</Link>
+            <Link to="/collector-history" className="block w-full px-4 py-2 bg-white text-green-600 rounded">TASKS</Link>
           </div>
         </div>
 
+        {/* Main Content */}
         <main className="flex-1 p-8 overflow-auto">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-gray-800 drop-shadow">GARBAGE COLLECTOR HISTORY</h1>
-            <p className="text-gray-500 mt-1">Assignment details of this request</p>
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-2xl font-bold text-gray-800 drop-shadow">TASK MANAGEMENT</h1>
           </div>
 
-          <div className="bg-white p-4 rounded-lg shadow mb-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-              <input
-                type="text"
-                placeholder="Search collectors by name or email"
-                className="w-full sm:w-64 p-2 border border-gray-300 rounded-md text-sm"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-              />
-              <button
-                onClick={handleSearchClick}
-                className="px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-              >
-                Search
-              </button>
+          {loading ? (
+            <p className="text-center text-gray-500">Loading tasks...</p>
+          ) : error ? (
+            <p className="text-center text-red-500">{error}</p>
+          ) : (
+            <div className="bg-white rounded-lg shadow overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {['Client Name', 'Location', 'Date', 'Status', 'Actions'].map((header) => (
+                        <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          {header}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {tasks.map((task) => (
+                      <tr key={task._id}>
+                        <td className="px-6 py-4 whitespace-nowrap font-semibold">
+                          {task.clientName || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap font-semibold">
+                          {task.location || '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap font-semibold">
+                          {task.date ? new Date(task.date).toLocaleString() : '-'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(task.status)}`}>
+                            {task.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium flex items-center gap-3">
+                          <button
+                            onClick={() => handleViewDetails(task)}
+                            className="text-blue-600 hover:text-blue-900 text-xl"
+                          >
+                            👁️
+                          </button>
+                          {task.status !== 'Completed' && (
+                            <button
+                              onClick={() => {
+                                setSelectedTask(task);
+                                setShowStatusModal(true);
+                              }}
+                              className="text-green-600 hover:text-green-900 text-xl"
+                            >
+                              ✓
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {tasks.length === 0 && (
+                  <p className="text-center py-4 text-gray-500">No tasks assigned.</p>
+                )}
+              </div>
             </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-lg font-semibold text-green-700 mb-4">Assign to Garbage Collector</h2>
-            <table className="w-full table-auto text-left border border-gray-200">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th className="px-4 py-2 border">Name</th>
-                  <th className="px-4 py-2 border">Email</th>
-                  <th className="px-4 py-2 border">Phone No.</th>
-                  <th className="px-4 py-2 border">Address</th>
-                  <th className="px-4 py-2 border">Pickups</th>
-                  <th className="px-4 py-2 border">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredCollectors.map((collector, index) => (
-                  <tr key={collector.id}>
-                    <td className="px-4 py-2 border">{collector.name}</td>
-                    <td className="px-4 py-2 border">{collector.email}</td>
-                    <td className="px-4 py-2 border">{collector.phone}</td>
-                    <td className="px-4 py-2 border">{collector.address}</td>
-                    <td className="px-4 py-2 border">{collector.pickups}</td>
-                    <td className="px-4 py-2 border">
-                      {assignedCollectorIndex === index ? (
-                        <button disabled className="bg-gray-400 text-white px-3 py-1 rounded cursor-not-allowed">
-                          Assigned
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => handleAssign(collector, index)}
-                          className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
-                        >
-                          Assign
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          )}
         </main>
-      </div>
 
-      {isModalOpen && assignedCollector && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
-            <h2 className="text-xl font-bold text-green-700">Assigned Collector</h2>
-            <p><strong>Name:</strong> {assignedCollector.name}</p>
-            <p><strong>Phone:</strong> {assignedCollector.phone}</p>
-            <p><strong>Email:</strong> {assignedCollector.email}</p>
-            <p><strong>Address:</strong> {assignedCollector.address}</p>
-            <p><strong>Pickups:</strong> {assignedCollector.pickups}</p>
-            <div className="flex justify-center gap-4 mt-4">
-              <button
-                onClick={closeModal}
-                className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-              >
-                OK
-              </button>
+        {/* Status Update Modal */}
+        {showStatusModal && selectedTask && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
+              <h2 className="text-xl font-bold text-green-700">Update Status</h2>
+              <div className="space-y-2">
+                {['On the Way', 'Completed', 'Not Arrived'].map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => handleUpdateStatus(selectedTask._id, status)}
+                    className="w-full px-4 py-2 text-left hover:bg-gray-100 rounded"
+                  >
+                    {status}
+                  </button>
+                ))}
+              </div>
+              <div className="flex justify-center gap-4 mt-4">
+                <button
+                  onClick={() => {
+                    setShowStatusModal(false);
+                    setSelectedTask(null);
+                  }}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Task Details Modal */}
+        {showTaskDetails && taskDetails && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
+              <h2 className="text-xl font-bold text-blue-700">Task Details</h2>
+              <div className="text-left space-y-2">
+                <p><strong>Client Name:</strong> {taskDetails.clientName}</p>
+                <p><strong>Location:</strong> {taskDetails.location}</p>
+                <p><strong>Date:</strong> {new Date(taskDetails.date).toLocaleString()}</p>
+                <p><strong>Description:</strong> {taskDetails.description || '-'}</p>
+                <p><strong>Status:</strong> {taskDetails.status}</p>
+                <p><strong>Priority:</strong> {taskDetails.priority || 'Medium'}</p>
+                <p><strong>Waste Type:</strong> {taskDetails.wasteType || 'General'}</p>
+              </div>
+              <div className="flex justify-center gap-4 mt-4">
+                <button
+                  onClick={closeTaskDetails}
+                  className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

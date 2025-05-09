@@ -1,85 +1,207 @@
 const ScheduledCollection = require("../models/scheduledCollection");
 const UserHistory = require("../models/UserHistory");
 const User = require("../models/user");
+const nodemailer = require("nodemailer");
+
+// Email transporter setup
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+});
+
+// Helper function to send email notifications
+const sendEmailNotification = async (to, subject, html) => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to,
+      subject,
+      html
+    });
+  } catch (error) {
+    console.error("Email notification error:", error);
+  }
+};
 
 // User schedules a pickup
 exports.addScheduledCollection = async (req, res) => {
   try {
-    const user = await User.findById(req.user._id);
+    const { date, location, description, wasteType, priority, notes, estimatedTime } = req.body;
+    const userId = req.user._id;
+
+    // Validate date is in the future
+    if (new Date(date) <= new Date()) {
+      return res.status(400).json({ message: "Collection date must be in the future" });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
     const newCollection = new ScheduledCollection({
-      ...req.body,
-      clientId: user._id,
+      date,
+      location,
+      description,
+      wasteType,
+      priority,
+      notes,
+      estimatedTime,
+      clientId: userId,
       clientName: user.name,
-      clientPhone: user.phoneNumber, // Make sure to use `phoneNumber` here
+      clientEmail: user.email,
+      clientPhone: user.phoneNumber,
       clientAddress: user.address,
-      status: "Booked"
+      status: "Pending"
     });
 
     await newCollection.save();
-    res.status(201).json({
-      success: true,
-      data: newCollection
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+
+    // Send confirmation email to user
+    await sendEmailNotification(
+      user.email,
+      "Collection Scheduled",
+      `<h1>Your collection has been scheduled</h1>
+       <p>Date: ${new Date(date).toLocaleDateString()}</p>
+       <p>Location: ${location}</p>
+       <p>Description: ${description}</p>
+       <p>Status: Pending</p>`
+    );
+
+    res.status(201).json({ message: "Collection scheduled successfully", collection: newCollection });
+  } catch (error) {
+    console.error("Error scheduling collection:", error);
+    res.status(500).json({ message: "Error scheduling collection", error: error.message });
   }
 };
 
 // Get user's pending tasks (reminders)
 exports.getRemainders = async (req, res) => {
   try {
-    const remainders = await ScheduledCollection.find({
-      clientId: req.user._id,
-      status: { $in: ["Booked", "Assigned", "Not Arrived", "On the Way"] }
-    }).sort({ date: -1 });  // Sort by date descending (newest first)
+    const userId = req.user._id;
+    const collections = await ScheduledCollection.find({
+      clientId: userId,
+      status: { $in: ["Pending", "Assigned", "Not Arrived", "On the Way"] },
+      date: { $gte: new Date() }
+    }).sort({ date: 1 });
 
-    res.status(200).json({ success: true, data: remainders });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(200).json({
+      success: true,
+      data: collections,
+    });
+  } catch (error) {
+    console.error("Error fetching reminders:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Error fetching reminders", 
+      error: error.message,
+    });
   }
 };
 
 // Get user's completed pickups (history)
 exports.getUserHistory = async (req, res) => {
   try {
-    const history = await UserHistory.find({ userId: req.user._id })
-      .sort({ date: -1 });
+    const userId = req.user._id;
+    console.log("Fetching history for user:", userId);
 
-    res.status(200).json({ success: true, data: history });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    // Get both UserHistory entries and Picked Up collections
+    const [historyEntries, pickedUpCollections] = await Promise.all([
+      UserHistory.find({ userId }).sort({ date: -1 }),
+      ScheduledCollection.find({
+        clientId: userId,
+        status: "Picked Up"
+      }).sort({ date: -1 })
+    ]);
+
+    console.log("Found history entries:", historyEntries.length);
+    console.log("Found picked up collections:", pickedUpCollections.length);
+
+    // Combine and sort the results
+    const combinedHistory = [
+      ...historyEntries.map(entry => ({
+        _id: entry._id,
+        userId: entry.userId,
+        location: entry.location,
+        wasteType: entry.wasteType,
+        date: entry.date,
+        status: entry.status,
+        description: entry.description,
+        actualPickupTime: entry.actualPickupTime,
+        clientName: entry.clientName,
+        clientEmail: entry.clientEmail,
+        clientPhone: entry.clientPhone,
+        clientAddress: entry.clientAddress,
+        collectorId: entry.collectorId,
+        priority: entry.priority,
+        notes: entry.notes,
+        estimatedTime: entry.estimatedTime
+      })),
+      ...pickedUpCollections.map(collection => ({
+        _id: collection._id,
+        userId: collection.clientId,
+        location: collection.location,
+        wasteType: collection.wasteType,
+        date: collection.date,
+        status: "Completed",
+        description: collection.description,
+        actualPickupTime: collection.actualPickupTime,
+        clientName: collection.clientName,
+        clientEmail: collection.clientEmail,
+        clientPhone: collection.clientPhone,
+        clientAddress: collection.clientAddress,
+        collectorId: collection.collectorId,
+        priority: collection.priority,
+        notes: collection.notes,
+        estimatedTime: collection.estimatedTime
+      }))
+    ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+    console.log("Total combined history entries:", combinedHistory.length);
+
+    res.status(200).json({
+      success: true,
+      data: combinedHistory
+    });
+  } catch (error) {
+    console.error("Error fetching user history:", error);
+    res.status(500).json({ 
+      success: false,
+      message: "Error fetching user history", 
+      error: error.message 
+    });
   }
 };
 
 // Admin views pending requests
 exports.getPendingRequests = async (req, res) => {
   try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ success: false, message: "Unauthorized access" });
-    }
+    const collections = await ScheduledCollection.find({
+      status: { $in: ["Pending", "Assigned"] }
+    }).sort({ date: 1, priority: -1 });
 
-    const requests = await ScheduledCollection.find({ status: "Booked" })
-      .populate("clientId", "fullName email phone address");
-
-    res.status(200).json({ success: true, data: requests });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(200).json(collections);
+  } catch (error) {
+    console.error("Error fetching pending requests:", error);
+    res.status(500).json({ message: "Error fetching pending requests", error: error.message });
   }
 };
 
 // Admin fetches Garbage Collectors list
 exports.getGarbageCollectors = async (req, res) => {
   try {
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ success: false, message: "Unauthorized access" });
-    }
+    const collectors = await User.find({ 
+      role: "garbageCollector", 
+      isVerified: true 
+    }).select("name email phoneNumber address pickups");
 
-    const collectors = await User.find({ role: "garbageCollector", isApproved: true })
-      .select("fullName email phoneNo address pickups");
-
-    res.status(200).json({ success: true, data: collectors });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(200).json(collectors);
+  } catch (error) {
+    console.error("Error fetching garbage collectors:", error);
+    res.status(500).json({ message: "Error fetching garbage collectors", error: error.message });
   }
 };
 
@@ -88,162 +210,268 @@ exports.assignCollector = async (req, res) => {
   try {
     const { collectionId, collectorId } = req.body;
 
-    if (req.user.role !== "admin") {
-      return res.status(403).json({ success: false, message: "Admin access required" });
-    }
-
     const collection = await ScheduledCollection.findById(collectionId);
     if (!collection) {
-      return res.status(404).json({ success: false, message: "Scheduled collection not found" });
+      return res.status(404).json({ message: "Collection not found" });
     }
 
-    if (collection.collectorId) {
-      return res.status(400).json({ success: false, message: "Collector already assigned" });
+    const collector = await User.findById(collectorId);
+    if (!collector || collector.role !== "garbageCollector") {
+      return res.status(400).json({ message: "Invalid collector" });
     }
 
-    await User.findByIdAndUpdate(collectorId, { $inc: { pickups: 1 } });
+    // Store the previous collector's ID if it exists
+    const previousCollectorId = collection.collectorId;
 
-    const updatedCollection = await ScheduledCollection.findByIdAndUpdate(
-      collectionId,
-      { collectorId, status: "Assigned" },
-      { new: true }
-    );
+    // If there was a previous collector, send them a notification about the reassignment first
+    if (previousCollectorId) {
+      const previousCollector = await User.findById(previousCollectorId);
+      if (previousCollector) {
+        try {
+          await sendEmailNotification(
+            previousCollector.email,
+            "Collection Reassigned",
+            `<h1>Your collection has been reassigned</h1>
+             <p>The following collection has been reassigned to another collector:</p>
+             <p>Date: ${new Date(collection.date).toLocaleDateString()}</p>
+             <p>Location: ${collection.location}</p>
+             <p>Client: ${collection.clientName}</p>
+             <p>This collection is no longer assigned to you.</p>`
+          );
+          console.log("Reassignment notification sent to previous collector:", previousCollector.email);
+        } catch (emailError) {
+          console.error("Error sending reassignment notification:", emailError);
+        }
+      }
+    }
 
-    res.status(200).json({
-      success: true,
-      message: "Collector assigned successfully",
-      data: updatedCollection
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    // Update only the collector-related fields
+    collection.collectorId = collectorId;
+    collection.status = "Assigned";
+    
+    // Ensure we don't overwrite client information
+    if (!collection.clientEmail) {
+      const client = await User.findById(collection.clientId);
+      if (client) {
+        collection.clientEmail = client.email;
+        collection.clientName = client.name;
+        collection.clientPhone = client.phoneNumber;
+        collection.clientAddress = client.address;
+      }
+    }
+
+    await collection.save();
+
+    // Try to send notifications to new collector and user
+    try {
+      // Send notification to new collector
+      await sendEmailNotification(
+        collector.email,
+        "New Collection Assigned",
+        `<h1>You have been assigned a new collection</h1>
+         <p>Date: ${new Date(collection.date).toLocaleDateString()}</p>
+         <p>Location: ${collection.location}</p>
+         <p>Client: ${collection.clientName}</p>
+         <p>Please check your dashboard for more details.</p>`
+      );
+
+      // Send notification to user
+      await sendEmailNotification(
+        collection.clientEmail,
+        "Collector Assigned",
+        `<h1>A collector has been assigned to your request</h1>
+         <p>Date: ${new Date(collection.date).toLocaleDateString()}</p>
+         <p>Location: ${collection.location}</p>
+         <p>Collector: ${collector.name}</p>
+         <p>You will be notified when the collection is completed.</p>`
+      );
+    } catch (emailError) {
+      console.error("Error sending email notifications:", emailError);
+      // Continue with the response even if email sending fails
+    }
+
+    res.status(200).json({ message: "Collector assigned successfully", collection });
+  } catch (error) {
+    console.error("Error assigning collector:", error);
+    res.status(500).json({ message: "Error assigning collector", error: error.message });
   }
 };
 
 // Garbage Collector updates task status
 exports.updateStatus = async (req, res) => {
   try {
-    const { status } = req.body;
     const { id } = req.params;
+    const { status } = req.body;
+    const collectorId = req.user._id;
 
-    const validStatuses = ["Not Arrived", "On the Way", "Picked Up"];
-    if (!validStatuses.includes(status)) {
-      return res.status(400).json({ success: false, message: "Invalid status" });
-    }
+    console.log("Updating status for collection:", id);
+    console.log("New status:", status);
+    console.log("Collector ID:", collectorId);
 
-    const collection = await ScheduledCollection.findOneAndUpdate(
-      { _id: id, collectorId: req.user._id },
-      { status },
-      { new: true }
-    );
-
+    const collection = await ScheduledCollection.findById(id);
     if (!collection) {
-      return res.status(404).json({ success: false, message: "Collection not found or not assigned to you" });
+      return res.status(404).json({ message: "Collection not found" });
     }
 
+    console.log("Found collection:", collection);
+
+    if (collection.collectorId.toString() !== collectorId.toString()) {
+      return res.status(403).json({ message: "Not authorized to update this collection" });
+    }
+
+    // Update the status
+    collection.status = status;
+    
+    // If status is Picked Up, add to user history
     if (status === "Picked Up") {
-      await UserHistory.create({
-        userId: collection.clientId,
-        location: collection.location,
-        wasteType: collection.description,
-        date: collection.date
-      });
+      try {
+        collection.actualPickupTime = new Date();
+        
+        console.log("Creating history entry for user:", collection.clientId);
+        
+        // Add to user history with all necessary fields
+        const history = new UserHistory({
+          userId: collection.clientId,
+          location: collection.location,
+          wasteType: collection.wasteType,
+          date: collection.date,
+          status: "Completed",
+          description: collection.description,
+          actualPickupTime: collection.actualPickupTime,
+          clientName: collection.clientName,
+          clientEmail: collection.clientEmail,
+          clientPhone: collection.clientPhone,
+          clientAddress: collection.clientAddress,
+          collectorId: collection.collectorId,
+          priority: collection.priority,
+          notes: collection.notes,
+          estimatedTime: collection.estimatedTime
+        });
+
+        console.log("History entry to be saved:", history);
+        const savedHistory = await history.save();
+        console.log("History entry saved successfully:", savedHistory);
+      } catch (historyError) {
+        console.error("Error creating history:", historyError);
+        // Continue with the status update even if history creation fails
+      }
     }
 
-    res.status(200).json({ success: true, data: collection });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    // Save the collection status update
+    await collection.save();
+    console.log("Collection status updated successfully");
+
+    // Try to send notification, but don't fail if it doesn't work
+    try {
+      await sendEmailNotification(
+        collection.clientEmail,
+        "Collection Status Updated",
+        `<h1>Your collection status has been updated</h1>
+         <p>Status: ${status}</p>
+         <p>Date: ${new Date(collection.date).toLocaleDateString()}</p>
+         <p>Location: ${collection.location}</p>`
+      );
+    } catch (emailError) {
+      console.error("Error sending email notification:", emailError);
+      // Continue with the response even if email fails
+    }
+
+    res.status(200).json({ 
+      message: "Status updated successfully", 
+      collection,
+      historyCreated: status === "Picked Up"
+    });
+  } catch (error) {
+    console.error("Error updating status:", error);
+    res.status(500).json({ 
+      message: "Error updating status", 
+      error: error.message,
+      details: error.stack
+    });
   }
 };
 
 // Garbage Collector gets assigned tasks
 exports.getAssignedCollections = async (req, res) => {
   try {
-    const tasks = await ScheduledCollection.find({
-      collectorId: req.user._id,
-      status: { $in: ["Assigned", "Not Arrived", "On the Way"] }
-    }).sort({ date: 1 });
+    const collectorId = req.user._id;
+    const collections = await ScheduledCollection.find({
+      collectorId,
+      status: { $in: ["Assigned", "Not Arrived", "On the Way", "Picked Up"] },
+      date: { $gte: new Date() }
+    }).sort({ date: 1, priority: -1 });
 
-    res.status(200).json({ success: true, data: tasks });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(200).json(collections);
+  } catch (error) {
+    console.error("Error fetching assigned collections:", error);
+    res.status(500).json({ message: "Error fetching assigned collections", error: error.message });
   }
 };
 
 // GC: Get task details by ID
 exports.getTaskById = async (req, res) => {
   try {
-    const task = await ScheduledCollection.findOne({
-      _id: req.params.id,
-      collectorId: req.user._id
-    });
-
-    if (!task) {
-      return res.status(404).json({
-        success: false,
-        message: "Task not found or not assigned to you"
-      });
+    const { id } = req.params;
+    const collection = await ScheduledCollection.findById(id);
+    
+    if (!collection) {
+      return res.status(404).json({ message: "Collection not found" });
     }
 
-    res.status(200).json({ success: true, data: task });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(200).json(collection);
+  } catch (error) {
+    console.error("Error fetching task:", error);
+    res.status(500).json({ message: "Error fetching task", error: error.message });
   }
 };
 
-// (Optional) GC: View completed pickups
+// GC: View completed pickups
 exports.getCollectorHistory = async (req, res) => {
   try {
-    const history = await ScheduledCollection.find({
-      collectorId: req.user._id,
+    const collectorId = req.user._id;
+    const collections = await ScheduledCollection.find({
+      collectorId,
       status: "Picked Up"
     }).sort({ date: -1 });
 
-    res.status(200).json({ success: true, data: history });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(200).json(collections);
+  } catch (error) {
+    console.error("Error fetching collector history:", error);
+    res.status(500).json({ message: "Error fetching collector history", error: error.message });
   }
 };
 
-// Delete a pending scheduled task
+// Delete a scheduled task
 exports.deletePendingTask = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user._id;
+    const userRole = req.user.role;
 
-    // Find the task
-    const task = await ScheduledCollection.findById(id);
-
-    if (!task) {
-      return res.status(404).json({ success: false, message: "Task not found" });
+    const collection = await ScheduledCollection.findById(id);
+    if (!collection) {
+      return res.status(404).json({ message: "Collection not found" });
     }
 
-    // Only allow deletion if task is in a pending status
-    const pendingStatuses = ["Booked", "Assigned", "Not Arrived", "On the Way"];
-    if (!pendingStatuses.includes(task.status)) {
-      return res.status(400).json({
-        success: false,
-        message: "Only tasks with pending status can be deleted"
-      });
+    // Allow admin to delete any collection
+    if (userRole === "admin") {
+      await ScheduledCollection.findByIdAndDelete(id);
+      return res.status(200).json({ message: "Collection deleted successfully" });
     }
 
-    // Allow only client who created it or an admin to delete
-    if (
-      req.user.role !== "admin" &&
-      String(task.clientId) !== String(req.user._id)
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "You are not authorized to delete this task"
-      });
+    // For non-admin users, only allow deletion of their own pending collections
+    if (collection.clientId.toString() !== userId.toString()) {
+      return res.status(403).json({ message: "Not authorized to delete this collection" });
     }
 
-    // Delete the task
+    if (collection.status !== "Pending") {
+      return res.status(400).json({ message: "Can only delete pending collections" });
+    }
+
     await ScheduledCollection.findByIdAndDelete(id);
-
-    res.status(200).json({
-      success: true,
-      message: "Pending task deleted successfully"
-    });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(200).json({ message: "Collection deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting collection:", error);
+    res.status(500).json({ message: "Error deleting collection", error: error.message });
   }
 };

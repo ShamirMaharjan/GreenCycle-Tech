@@ -1,17 +1,20 @@
-import React, { useState } from "react";
+import React from "react";
 import axios from "axios";
 import { generateUniqueId } from "esewajs";
 
 const PaymentForm = () => {
-    const [amount, setAmount] = useState("");
-
     const handlePayment = async (e) => {
         e.preventDefault();
 
         try {
+            const token = localStorage.getItem('token');
             const response = await axios.post("http://localhost:3000/initiate-payment", {
-                amount,
+                amount: 100,
                 productId: generateUniqueId(),
+            }, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
             });
 
             window.location.href = response.data.url;
@@ -29,19 +32,10 @@ const PaymentForm = () => {
                 </h1>
 
                 <form onSubmit={handlePayment} className="space-y-6">
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="amount" className="text-sm font-medium text-gray-700">
-                            Amount
-                        </label>
-                        <input
-                            type="number"
-                            id="amount"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.value)}
-                            required
-                            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
-                            placeholder="Enter amount (100)"
-                        />
+                    <div className="text-center">
+                        <p className="text-lg font-medium text-gray-700 mb-4">
+                            Fixed Payment Amount: Rs. 100
+                        </p>
                     </div>
 
                     <button

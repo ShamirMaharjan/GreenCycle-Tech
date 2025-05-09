@@ -21,6 +21,9 @@ const Success = () => {
 
             if (response.status === 200) {
                 setIsSuccess(true);
+                setTimeout(() => {
+                        navigate("/schedule/after-payment")
+                }, 1500);
             }
         } catch (error) {
             console.error("Error confirming payment:", error);
@@ -50,7 +53,7 @@ const Success = () => {
                 <h1 className="text-2xl font-bold mb-2">Oops! Payment Verification Failed</h1>
                 <p className="mb-6">We encountered an error confirming your payment. Please try again later.</p>
                 <button
-                    onClick={() => navigate("/schedule/new")}
+                    onClick={() => navigate("/schedule")}
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
                 >
                     Okay
@@ -63,12 +66,8 @@ const Success = () => {
         <div className="flex flex-col items-center justify-center h-screen bg-green-50 text-green-700 px-4">
             <h1 className="text-3xl font-bold mb-2">Payment Successful!</h1>
             <p className="mb-6 text-center">Thank you for your payment. Your transaction was successful.</p>
-            <button
-                onClick={() => navigate("/schedule/new")}
-                className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
-            >
-                Okay
-            </button>
+            <p className="text-sm text-gray-600 mb-4">Redirecting you to schedule collection...</p>
+            <div className="loader"></div>
         </div>
     );
 };
