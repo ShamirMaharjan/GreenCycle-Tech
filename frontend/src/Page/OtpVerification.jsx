@@ -30,7 +30,7 @@ const OtpVerification = () => {
                     position: 'top-right',
                 });
 
-                navigate(response.data.user.role === 'garbageCollector' ? '/gchome' : '/userHome');
+                navigate(response.data.user.role === 'garbageCollector' ? '/login' : '/userHome');
             }
         } catch (error) {
             toast.error(error.response?.data?.message || "Verification failed", {

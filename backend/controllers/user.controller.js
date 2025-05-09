@@ -92,6 +92,7 @@ async function register(req, res) {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+
     // Create temp user with isVerified: false for garbageCollector
     const tempUser = new TempUser({
       name,
