@@ -1,0 +1,12 @@
+# pack-refs with: peeled fully-peeled sorted 
+4941bf20e269ff2f95ca5bde3645d99d0fcb397b refs/heads/Backend
+a3683d3776b7fc34e9a98d3c4343338456c55a55 refs/heads/Contact
+cf1799be7f44fa8c76b0416cb9ca945562bdc9dc refs/heads/Integrate
+f58e6951d13ad2d6cb53f4fc59f492f2383a5745 refs/heads/Schedule
+ed1f045ba0295887d7eb1cf2e46943cc52f36510 refs/heads/Schedulebranch
+9290deeee7b37a2efa189b06f44abc761cd7d695 refs/heads/Signup
+59f23edabdece1259d401089770cbbf1183492f4 refs/heads/final
+4344a531dc66a5ad72d1c150ab58536aa1ab548e refs/heads/integrate
+ece5df9d4da0c7d7125fba288b19255f7134df0e refs/heads/main
+1697cbd9849f5b24fb582740ae54e5fb1ed7785b refs/heads/saksham
+09c79f489cf62cea6e1d8808b7935a4a84e7b12d refs/heads/saurya

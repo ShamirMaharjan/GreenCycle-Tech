@@ -108,63 +108,14 @@ exports.getUserHistory = async (req, res) => {
     const userId = req.user._id;
     console.log("Fetching history for user:", userId);
 
-    // Get both UserHistory entries and Picked Up collections
-    const [historyEntries, pickedUpCollections] = await Promise.all([
-      UserHistory.find({ userId }).sort({ date: -1 }),
-      ScheduledCollection.find({
-        clientId: userId,
-        status: "Picked Up"
-      }).sort({ date: -1 })
-    ]);
+    // Get only UserHistory entries
+    const historyEntries = await UserHistory.find({ userId }).sort({ date: -1 });
 
     console.log("Found history entries:", historyEntries.length);
-    console.log("Found picked up collections:", pickedUpCollections.length);
-
-    // Combine and sort the results
-    const combinedHistory = [
-      ...historyEntries.map(entry => ({
-        _id: entry._id,
-        userId: entry.userId,
-        location: entry.location,
-        wasteType: entry.wasteType,
-        date: entry.date,
-        status: entry.status,
-        description: entry.description,
-        actualPickupTime: entry.actualPickupTime,
-        clientName: entry.clientName,
-        clientEmail: entry.clientEmail,
-        clientPhone: entry.clientPhone,
-        clientAddress: entry.clientAddress,
-        collectorId: entry.collectorId,
-        priority: entry.priority,
-        notes: entry.notes,
-        estimatedTime: entry.estimatedTime
-      })),
-      ...pickedUpCollections.map(collection => ({
-        _id: collection._id,
-        userId: collection.clientId,
-        location: collection.location,
-        wasteType: collection.wasteType,
-        date: collection.date,
-        status: "Completed",
-        description: collection.description,
-        actualPickupTime: collection.actualPickupTime,
-        clientName: collection.clientName,
-        clientEmail: collection.clientEmail,
-        clientPhone: collection.clientPhone,
-        clientAddress: collection.clientAddress,
-        collectorId: collection.collectorId,
-        priority: collection.priority,
-        notes: collection.notes,
-        estimatedTime: collection.estimatedTime
-      }))
-    ].sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    console.log("Total combined history entries:", combinedHistory.length);
 
     res.status(200).json({
       success: true,
-      data: combinedHistory
+      data: historyEntries
     });
   } catch (error) {
     console.error("Error fetching user history:", error);
@@ -325,16 +276,16 @@ exports.updateStatus = async (req, res) => {
     // If status is Picked Up, add to user history
     if (status === "Picked Up") {
       try {
-        collection.actualPickupTime = new Date();
-        
+      collection.actualPickupTime = new Date();
+      
         console.log("Creating history entry for user:", collection.clientId);
         
         // Add to user history with all necessary fields
-        const history = new UserHistory({
-          userId: collection.clientId,
-          location: collection.location,
-          wasteType: collection.wasteType,
-          date: collection.date,
+      const history = new UserHistory({
+        userId: collection.clientId,
+        location: collection.location,
+        wasteType: collection.wasteType,
+        date: collection.date,
           status: "Completed",
           description: collection.description,
           actualPickupTime: collection.actualPickupTime,
@@ -363,14 +314,14 @@ exports.updateStatus = async (req, res) => {
 
     // Try to send notification, but don't fail if it doesn't work
     try {
-      await sendEmailNotification(
-        collection.clientEmail,
-        "Collection Status Updated",
-        `<h1>Your collection status has been updated</h1>
-         <p>Status: ${status}</p>
-         <p>Date: ${new Date(collection.date).toLocaleDateString()}</p>
-         <p>Location: ${collection.location}</p>`
-      );
+    await sendEmailNotification(
+      collection.clientEmail,
+      "Collection Status Updated",
+      `<h1>Your collection status has been updated</h1>
+       <p>Status: ${status}</p>
+       <p>Date: ${new Date(collection.date).toLocaleDateString()}</p>
+       <p>Location: ${collection.location}</p>`
+    );
     } catch (emailError) {
       console.error("Error sending email notification:", emailError);
       // Continue with the response even if email fails

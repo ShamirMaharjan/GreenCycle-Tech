@@ -93,7 +93,7 @@ const HistoryPage = () => {
                                     status={item.status}
                                     description={item.description}
                                 />
-                            ))}
+                    ))}
                         </div>
                     )}
                 </div>
