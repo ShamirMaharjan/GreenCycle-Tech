@@ -8,7 +8,6 @@ import SchedulePage from "./Page/User/SchedulePage";
 import HistoryPage from "./Page/User/HistoryPage";
 import ContactPage from "./Page/User/ContactPage";
 import ViewPost from "./Page/User/ViewPost";
-import AdminHomePage from "./Page/Admin/AdminHomePage";
 import AddPostPage from "./Page/Admin/AddPostPage";
 import EditPostPage from "./Page/Admin/EditPostPage";
 import NoticePage from "./Page/Admin/NoticePage";
@@ -21,6 +20,7 @@ import PickUpPage from "./Page/GC/PickUpPage";
 import LandingPage from "./Page/LandingPage";
 import GCViewPost from "./Page/GC/GCViewpost";
 import CollectionForm from "./Page/User/CollectionForm";
+import ScheduleAfterPayment from "./Page/User/ScheduleAfterPayment";
 import GCHistoryPage from "./Page/GC/GCHistoryPage";
 import GCContactPage from "./Page/GC/GCContactPage";
 import PaymentForm from "./components/PaymentForm";
@@ -75,7 +75,8 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/viewPost" element={<ViewPost />} />
         <Route path="/schedule/new" element={<CollectionForm />} />
-
+        <Route path="/schedule/after-payment" element={<ScheduleAfterPayment />} />
+        
         {/* Admin Routes */}
         {/* <Route path="/adminHome" element={<AdminHomePage />} /> */}
         <Route path="/addPost" element={<AddPostPage />} />

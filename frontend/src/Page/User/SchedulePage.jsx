@@ -5,24 +5,30 @@ import Sidebar from '../../components/Sidebar';
 import Calendar2 from '@/components/Calender2';
 import { Plus } from 'lucide-react';
 import { format } from 'date-fns';
+import axios from 'axios';
 
 const Schedule = () => {
     const navigate = useNavigate();
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [reminders, setReminders] = useState([]);
     const [showDayView, setShowDayView] = useState(false);
+    const [isPaymentComplete, setIsPaymentComplete] = useState(false);
+    const [isCheckingPayment, setIsCheckingPayment] = useState(true);
 
     // Fetch reminders from backend
     useEffect(() => {
         const fetchReminders = async () => {
             try {
-                const res = await fetch('http://localhost:3000/api/collections/remainders', {
+                const res = await fetch('http://localhost:3000/api/scheduled-collection/reminders', {
                     headers: {
-                      Authorization: `Bearer ${localStorage.getItem('token')}`
+                        Authorization: `Bearer ${localStorage.getItem('token')}`
                     }
-                  });
-                  
-                  
+                });
+                
+                if (!res.ok) {
+                    throw new Error(`HTTP error! status: ${res.status}`);
+                }
+                
                 const data = await res.json();
                 
                 if (Array.isArray(data)) {
@@ -38,6 +44,29 @@ const Schedule = () => {
         };
 
         fetchReminders();
+    }, []);
+
+    useEffect(() => {
+        let retries = 0;
+        const checkPaymentStatus = async () => {
+            try {
+                const response = await axios.get('http://localhost:3000/payment-status');
+                if (response.data.status === 'COMPLETE') {
+                    setIsPaymentComplete(true);
+                    setIsCheckingPayment(false);
+                } else if (retries < 3) {
+                    retries++;
+                    setTimeout(checkPaymentStatus, 1000); // 1 second wait
+                } else {
+                    setIsPaymentComplete(false);
+                    setIsCheckingPayment(false);
+                }
+            } catch (error) {
+                setIsPaymentComplete(false);
+                setIsCheckingPayment(false);
+            }
+        };
+        checkPaymentStatus();
     }, []);
 
     const handleDateSelect = (date) => {

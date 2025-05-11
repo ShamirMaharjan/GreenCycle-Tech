@@ -7,7 +7,8 @@ const fileUpload = require("express-fileupload");
 const fs = require("fs");
 const bodyParser = require("body-parser");
 const multer = require("multer");
-const { EsewaInitiatePayment, paymentStatus } = require("./controllers/esewa.controller.js");
+const { EsewaInitiatePayment, paymentStatus, checkUserPaymentStatus } = require("./controllers/esewa.controller.js");
+const authMiddleware = require("./middleware/authMiddleware");
 
 
 
@@ -81,14 +82,15 @@ app.post("/upload", upload.single("verificationImage"), (req, res) => {
 });
 
 // Payment routes
-app.post("/initiate-payment", EsewaInitiatePayment);
+app.post("/initiate-payment", authMiddleware, EsewaInitiatePayment);
 app.post("/payment-status", paymentStatus);
+app.get("/payment-status", authMiddleware, checkUserPaymentStatus);
 
 // API Routes
 app.use("/api/users", require("./routes/user"));
 app.use("/api/articles", require("./routes/articles"));
 app.use("/api/notices", require("./routes/notice"));
-app.use("/api/collections", require("./routes/scheduledCollection")); // ✅ scheduled routes
+app.use("/api/scheduled-collection", require("./routes/scheduledCollection"));
 
 // Import the contact routes
 const contactRoutes = require('./routes/contactRoutes');

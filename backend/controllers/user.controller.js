@@ -14,12 +14,15 @@ require("dotenv").config();
 
 //nodemailer
 let transporter = nodemailer.createTransport({
+  service: "gmail",
   host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASSWORD
   }
-})
+});
 
 // Constants
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -38,6 +41,25 @@ const ensureDirectoryExists = async (dirPath) => {
 const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const validatePassword = (password) => /^(?=.*[!@#$%^&*(),.?":{}|<>]).{7,}$/.test(password);
 const validatePhoneNumber = (phoneNumber) => /^\d{10}$/.test(phoneNumber);
+
+// Helper function to send email notifications
+const sendEmailNotification = async (to, subject, html) => {
+  try {
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to,
+      subject,
+      html
+    };
+    
+    const info = await transporter.sendMail(mailOptions);
+    console.log("Email sent successfully:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("Email notification error:", error);
+    throw error; // Re-throw the error to handle it in the calling function
+  }
+};
 
 // Registration Controller
 async function register(req, res) {
@@ -92,7 +114,6 @@ async function register(req, res) {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-
     // Create temp user with isVerified: false for garbageCollector
     const tempUser = new TempUser({
       name,
@@ -109,10 +130,43 @@ async function register(req, res) {
       })
     });
 
-    console.log("Plain Password During Registration:", password);
-    // console.log("Hashed Password During Registration:", hashedPassword);
-
     const savedTempUser = await tempUser.save();
+
+    // Send welcome email based on role
+    try {
+      const emailSubject = role === "garbageCollector" ? 
+        "Welcome to GreenCycle Tech - Garbage Collector Registration" : 
+        "Welcome to GreenCycle Tech - User Registration";
+
+      const emailHtml = `
+        <h1>Welcome to GreenCycle Tech!</h1>
+        <p>Dear ${name},</p>
+        <p>Thank you for registering with GreenCycle Tech.</p>
+        ${role === "garbageCollector" ? `
+          <p>As a garbage collector, your account is pending admin approval. You will receive another email once your account is approved.</p>
+          <p>Please complete your verification by:</p>
+          <ul>
+            <li>Uploading your verification documents</li>
+            <li>Waiting for admin approval</li>
+          </ul>
+        ` : `
+          <p>Your account has been created successfully. You can now:</p>
+          <ul>
+            <li>Schedule waste collection requests</li>
+            <li>Track your collection status</li>
+            <li>View your collection history</li>
+          </ul>
+        `}
+        <p>Please verify your email address using the OTP that has been sent separately.</p>
+        <p>Thank you for choosing GreenCycle Tech!</p>
+      `;
+
+      await sendEmailNotification(email, emailSubject, emailHtml);
+      console.log("Welcome email sent successfully to:", email);
+    } catch (emailError) {
+      console.error("Error sending welcome email:", emailError);
+      // Continue with registration even if email fails
+    }
 
     // Send OTP
     await sendOTPVerificationEmail(savedTempUser);
@@ -294,6 +348,35 @@ async function verifyCollector(req, res) {
     if (user.role !== 'garbageCollector') {
       return res.status(400).json({ success: false, message: "Only garbage collectors can be verified" });
     }
+
+    // Send email notification to the garbage collector
+    try {
+      const emailSubject = status ? "Account Approved" : "Account Unverified";
+      const emailHtml = `
+        <h1>${status ? "Your account has been approved!" : "Your account has been unverified"}</h1>
+        <p>Dear ${user.name},</p>
+        <p>${status ? 
+          "Your garbage collector account has been approved by the admin. You can now log in and start accepting collection requests." :
+          "Your garbage collector account has been unverified. Please contact the admin for more information."}</p>
+        ${status ? `
+          <p>You can now:</p>
+          <ul>
+            <li>Log in to your account</li>
+            <li>View and accept collection requests</li>
+            <li>Update your availability</li>
+            <li>Track your collections</li>
+          </ul>
+        ` : ""}
+        <p>Thank you for your cooperation.</p>
+      `;
+
+      await sendEmailNotification(user.email, emailSubject, emailHtml);
+      console.log("Verification email sent successfully to:", user.email);
+    } catch (emailError) {
+      console.error("Error sending verification email:", emailError);
+      // Continue with the response even if email sending fails
+    }
+
     console.log("User after verification:", user);
     return res.status(200).json({
       success: true,

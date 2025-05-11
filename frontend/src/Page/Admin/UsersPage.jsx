@@ -116,13 +116,13 @@ const UsersPage = () => {
   const handleApprove = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/api/users/${id}/verify`, {
-        method: "PATCH",
+      const response = await fetch(`http://localhost:3000/api/users/verify-collector/${id}`, {
+        method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ status: true }) // Send the status here
+        body: JSON.stringify({ status: true })
       });
 
       const data = await response.json();
@@ -132,19 +132,19 @@ const UsersPage = () => {
             user.id === id ? { ...user, isVerified: true } : user
           )
         );
-        toast.success("User approved successfully!", {
+        toast.success("Garbage collector approved successfully!", {
           duration: 3000,
           position: 'top-right',
         });
       } else {
-        toast.error(err.response?.data?.message || "Something went wrong", {
+        toast.error(data.message || "Something went wrong", {
           duration: 3000,
           position: 'top-right',
         });
         console.error("Approval failed:", data.message);
       }
     } catch (error) {
-      toast.error(err.response?.data?.message || "Something went wrong", {
+      toast.error(error.message || "Something went wrong", {
         duration: 3000,
         position: 'top-right',
       });
