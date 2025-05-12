@@ -2,13 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
-const ReminderCard = ({ date, location, onDelete, id }) => {
+const ReminderCard = ({ date, location, onDelete, id, onClick }) => {
   const parsedDate = new Date(date);
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-shadow relative">
+    <div 
+      className="border border-gray-200 rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-shadow relative cursor-pointer"
+      onClick={() => onClick(id)}
+    >
       <button 
-        onClick={() => onDelete(id)}
+        onClick={(e) => {
+          e.stopPropagation(); // Prevent modal from opening when clicking delete
+          onDelete(id);
+        }}
         className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors"
         title="Delete reminder"
       >
@@ -26,10 +32,97 @@ const ReminderCard = ({ date, location, onDelete, id }) => {
   );
 };
 
+const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
+  if (!isOpen || !schedule) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-gray-800">Schedule Details</h2>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold text-gray-700">Date & Time</h3>
+              <p className="text-gray-600">{format(new Date(schedule.date), 'EEEE, d MMMM yyyy')}</p>
+              {schedule.estimatedTime && (
+                <p className="text-gray-600">Estimated Time: {schedule.estimatedTime}</p>
+              )}
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-700">Status</h3>
+              <p className={`inline-block px-3 py-1 rounded-full text-sm ${
+                schedule.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                schedule.status === 'Assigned' ? 'bg-blue-100 text-blue-800' :
+                schedule.status === 'Picked Up' ? 'bg-green-100 text-green-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {schedule.status}
+              </p>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-gray-700">Location</h3>
+            <p className="text-gray-600">{schedule.location}</p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold text-gray-700">Description</h3>
+            <p className="text-gray-600">{schedule.description}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold text-gray-700">Waste Type</h3>
+              <p className="text-gray-600">{schedule.wasteType}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-700">Priority</h3>
+              <p className={`inline-block px-3 py-1 rounded-full text-sm ${
+                schedule.priority === 'High' ? 'bg-red-100 text-red-800' :
+                schedule.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-green-100 text-green-800'
+              }`}>
+                {schedule.priority}
+              </p>
+            </div>
+          </div>
+
+          {schedule.notes && (
+            <div>
+              <h3 className="font-semibold text-gray-700">Additional Notes</h3>
+              <p className="text-gray-600">{schedule.notes}</p>
+            </div>
+          )}
+
+          {schedule.collectorId && (
+            <div>
+              <h3 className="font-semibold text-gray-700">Assigned Collector</h3>
+              <p className="text-gray-600">{schedule.collectorName || 'Collector assigned'}</p>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Reminders = () => {
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
   const navigate = useNavigate();
 
   const fetchReminders = async () => {
@@ -119,6 +212,13 @@ const Reminders = () => {
     fetchReminders();
   };
 
+  const handleScheduleClick = (id) => {
+    const schedule = reminders.find(reminder => reminder._id === id);
+    if (schedule) {
+      setSelectedSchedule(schedule);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-3xl">
       <div className="flex justify-between items-center mb-6">
@@ -174,6 +274,7 @@ const Reminders = () => {
               date={reminder.date}
               location={reminder.location}
               onDelete={handleDelete}
+              onClick={handleScheduleClick}
             />
           ))}
         </div>
@@ -193,6 +294,12 @@ const Reminders = () => {
           </div>
         </div>
       )}
+
+      <ScheduleDetailsModal
+        isOpen={!!selectedSchedule}
+        onClose={() => setSelectedSchedule(null)}
+        schedule={selectedSchedule}
+      />
     </div>
   );
 };
