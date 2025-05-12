@@ -13,6 +13,7 @@ const ProfilePopup = () => {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [view, setView] = useState('info');
+    const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
     // Retrieve user data from local storage
     const storedUserData = localStorage.getItem('user');
@@ -25,6 +26,14 @@ const ProfilePopup = () => {
     const handleClosePopup = () => {
         setOpen(false);
         setTimeout(() => setView('info'), 300);
+    };
+
+    const handleLogout = () => {
+        // Clear user data and tokens
+        localStorage.removeItem('user');
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('token');
+        navigate('/');
     };
 
     const renderContent = () => {
@@ -78,7 +87,7 @@ const ProfilePopup = () => {
                             <Button variant="outline" onClick={() => { handleClosePopup(); navigate('/forgot-password'); }} className="text-red-600 hover:text-red-700">
                                 Change Password
                             </Button>
-                            <Button variant="outline" onClick={() => { handleClosePopup(); navigate('/'); }}>
+                            <Button variant="outline" onClick={() => setShowLogoutConfirm(true)}>
                                 Logout
                             </Button>
                         </div>
@@ -188,16 +197,46 @@ const ProfilePopup = () => {
     };
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-                <button className="p-2 rounded-full bg-gray-100">
-                    <UserRound size={24} />
-                </button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md p-0">
-                {renderContent()}
-            </DialogContent>
-        </Dialog>
+        <>
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogTrigger asChild>
+                    <button className="p-2 rounded-full bg-gray-100">
+                        <UserRound size={24} />
+                    </button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md p-0">
+                    {renderContent()}
+                </DialogContent>
+            </Dialog>
+
+            {/* Logout Confirmation Dialog */}
+            <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+                <DialogContent className="sm:max-w-md">
+                    <div className="p-6">
+                        <h3 className="text-lg font-semibold mb-4">Confirm Logout</h3>
+                        <p className="text-gray-600 mb-6">Are you sure you want to logout?</p>
+                        <div className="flex justify-end gap-3">
+                            <Button 
+                                variant="outline" 
+                                onClick={() => setShowLogoutConfirm(false)}
+                            >
+                                Cancel
+                            </Button>
+                            <Button 
+                                variant="default" 
+                                className="bg-red-600 hover:bg-red-700"
+                                onClick={() => {
+                                    setShowLogoutConfirm(false);
+                                    handleLogout();
+                                }}
+                            >
+                                Yes, Logout
+                            </Button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 };
 

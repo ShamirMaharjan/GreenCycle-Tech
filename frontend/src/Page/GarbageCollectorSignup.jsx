@@ -5,6 +5,7 @@ import bgImage from '../assets/backgroundimage.png';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import { IoMdInformationCircle } from "react-icons/io";
+
 const GarbageCollectorSignup = () => {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -20,10 +21,48 @@ const GarbageCollectorSignup = () => {
     licenseNumber: "",
     verificationImage: null
   });
+  const [licenseError, setLicenseError] = useState("");
+  const [vehicleError, setVehicleError] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    
+    if (name === 'licenseNumber') {
+      // Only allow numbers
+      if (!/^\d*$/.test(value)) {
+        setLicenseError("License number must contain only numbers");
+        return;
+      }
+      // Check minimum length
+      if (value.length > 0 && value.length < 6) {
+        setLicenseError("License number must be at least 6 digits");
+      } else {
+        setLicenseError("");
+      }
+    }
+    
+    if (name === 'vehicleNumber') {
+      // Remove any spaces and convert to uppercase
+      const cleanValue = value.replace(/\s/g, '').toUpperCase();
+      
+      // Check if it matches the format: 2 letters followed by 2 numbers followed by 2 letters
+      if (!/^[A-Z]{2}\d{2}[A-Z]{2}$/.test(cleanValue)) {
+        if (cleanValue.length > 0) {
+          setVehicleError("Vehicle number must be in format: AB12CD (2 letters, 2 numbers, 2 letters)");
+        } else {
+          setVehicleError("");
+        }
+      } else {
+        setVehicleError("");
+      }
+      
+      // Update the form data with the cleaned value
+      setFormData({ ...formData, [name]: cleanValue });
+      return;
+    }
+    
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleFileChange = (e) => {
@@ -66,6 +105,25 @@ const GarbageCollectorSignup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate vehicle number before submission
+    if (!/^[A-Z]{2}\d{2}[A-Z]{2}$/.test(formData.vehicleNumber)) {
+      toast.error("Please enter a valid vehicle number (format: AB12CD)", {
+        duration: 3000,
+        position: 'top-right',
+      });
+      return;
+    }
+
+    // Validate license number before submission
+    if (!/^\d{6,}$/.test(formData.licenseNumber)) {
+      toast.error("Please enter a valid license number (minimum 6 digits)", {
+        duration: 3000,
+        position: 'top-right',
+      });
+      return;
+    }
+
     if (!formData.vehicleNumber || !formData.collectionArea || !formData.licenseNumber) {
       toast.error("Please fill all garbage collector details", {
         duration: 3000,
@@ -209,15 +267,20 @@ const GarbageCollectorSignup = () => {
           </form>
         ) : (
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <input
-              type="text"
-              name="vehicleNumber"
-              placeholder="VEHICLE NUMBER"
-              className="input-field"
-              value={formData.vehicleNumber}
-              onChange={handleChange}
-              required
-            />
+            <div>
+              <input
+                type="text"
+                name="vehicleNumber"
+                placeholder="VEHICLE NUMBER (e.g., AB12CD)"
+                className={`input-field ${vehicleError ? 'border-red-500' : ''}`}
+                value={formData.vehicleNumber}
+                onChange={handleChange}
+                required
+              />
+              {vehicleError && (
+                <p className="text-red-500 text-sm mt-1">{vehicleError}</p>
+              )}
+            </div>
             <select
               name="collectionArea"
               className="input-field"
@@ -232,15 +295,20 @@ const GarbageCollectorSignup = () => {
               <option value="Balkhu">Balkhu</option>
               <option value="Boudha">Boudha</option>
             </select>
-            <input
-              type="text"
-              name="licenseNumber"
-              placeholder="LICENSE NUMBER"
-              className="input-field"
-              value={formData.licenseNumber}
-              onChange={handleChange}
-              required
-            />
+            <div>
+              <input
+                type="text"
+                name="licenseNumber"
+                placeholder="LICENSE NUMBER"
+                className={`input-field ${licenseError ? 'border-red-500' : ''}`}
+                value={formData.licenseNumber}
+                onChange={handleChange}
+                required
+              />
+              {licenseError && (
+                <p className="text-red-500 text-sm mt-1">{licenseError}</p>
+              )}
+            </div>
             <div className="flex items-center text-sm text-gray-700 space-x-2">
               <IoMdInformationCircle className="text-lg text-green-600" />
               <span>Admin must approve you first before you can start collecting waste.</span>
