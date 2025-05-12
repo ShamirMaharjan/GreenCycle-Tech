@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
-const ReminderCard = ({ date, location, onDelete, id, onClick }) => {
+const ReminderCard = ({ date, location, onDelete, id, onClick, hasCollector }) => {
   const parsedDate = new Date(date);
 
   return (
@@ -10,18 +10,22 @@ const ReminderCard = ({ date, location, onDelete, id, onClick }) => {
       className="border border-gray-200 rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-shadow relative cursor-pointer"
       onClick={() => onClick(id)}
     >
-      <button 
-        onClick={(e) => {
-          e.stopPropagation(); // Prevent modal from opening when clicking delete
-          onDelete(id);
-        }}
-        className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors"
-        title="Delete reminder"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-        </svg>
-      </button>
+      {hasCollector ? (
+        <div className="absolute top-2 right-2 px-3 py-1 text-sm font-medium text-gray-500 bg-gray-100 rounded-md">
+          Collector Assigned
+        </div>
+      ) : (
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(id);
+          }}
+          className="absolute top-2 right-2 px-3 py-1 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
+          title="Cancel Schedule"
+        >
+          Cancel Schedule
+        </button>
+      )}
       <div className="font-medium text-lg">
         {format(parsedDate, 'EEEE, d MMMM yyyy')}
       </div>
@@ -123,6 +127,7 @@ const Reminders = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [deleteError, setDeleteError] = useState(null);
   const navigate = useNavigate();
 
   const fetchReminders = async () => {
@@ -183,6 +188,7 @@ const Reminders = () => {
 
   const handleDelete = async (id) => {
     const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+    setDeleteError(null);
     
     try {
       const response = await fetch(`http://localhost:3000/api/scheduled-collection/${id}`, {
@@ -194,6 +200,11 @@ const Reminders = () => {
         credentials: 'include'
       });
 
+      if (response.status === 400) {
+        const data = await response.json();
+        throw new Error(data.message || 'Cannot delete schedule with assigned collector');
+      }
+
       if (!response.ok) {
         throw new Error('Failed to delete reminder');
       }
@@ -202,7 +213,7 @@ const Reminders = () => {
       setReminders(reminders.filter(reminder => reminder._id !== id));
     } catch (err) {
       console.error('Delete error:', err);
-      setError('Failed to delete reminder. Please try again.');
+      setDeleteError(err.message);
     }
   };
 
@@ -229,6 +240,21 @@ const Reminders = () => {
           </span>
         )}
       </div>
+
+      {deleteError && (
+        <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-red-700">{deleteError}</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex justify-center items-center h-40">
@@ -275,6 +301,7 @@ const Reminders = () => {
               location={reminder.location}
               onDelete={handleDelete}
               onClick={handleScheduleClick}
+              hasCollector={!!reminder.collectorId}
             />
           ))}
         </div>
