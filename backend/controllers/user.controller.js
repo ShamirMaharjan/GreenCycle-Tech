@@ -51,7 +51,7 @@ const sendEmailNotification = async (to, subject, html) => {
       subject,
       html
     };
-    
+
     const info = await transporter.sendMail(mailOptions);
     console.log("Email sent successfully:", info.messageId);
     return info;
@@ -134,8 +134,8 @@ async function register(req, res) {
 
     // Send welcome email based on role
     try {
-      const emailSubject = role === "garbageCollector" ? 
-        "Welcome to GreenCycle Tech - Garbage Collector Registration" : 
+      const emailSubject = role === "garbageCollector" ?
+        "Welcome to GreenCycle Tech - Garbage Collector Registration" :
         "Welcome to GreenCycle Tech - User Registration";
 
       const emailHtml = `
@@ -355,7 +355,7 @@ async function verifyCollector(req, res) {
       const emailHtml = `
         <h1>${status ? "Your account has been approved!" : "Your account has been unverified"}</h1>
         <p>Dear ${user.name},</p>
-        <p>${status ? 
+        <p>${status ?
           "Your garbage collector account has been approved by the admin. You can now log in and start accepting collection requests." :
           "Your garbage collector account has been unverified. Please contact the admin for more information."}</p>
         ${status ? `
@@ -478,7 +478,7 @@ async function forgotPassword(req, res) {
       to: email,
       subject: "Password Reset OTP",
       html: `<p>Your password reset OTP is: <strong>${otp}</strong></p>
-             <p>This OTP will expire in 15 minutes.</p>`
+             <p>This OTP will expire in 5 minutes.</p>`
     };
 
     await transporter.sendMail(mailOptions);
