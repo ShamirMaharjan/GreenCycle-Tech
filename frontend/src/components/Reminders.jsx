@@ -2,11 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
-const ReminderCard = ({ date, location }) => {
+const ReminderCard = ({ date, location, onDelete, id }) => {
   const parsedDate = new Date(date);
 
   return (
-    <div className="border border-gray-200 rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-shadow">
+    <div className="border border-gray-200 rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-shadow relative">
+      <button 
+        onClick={() => onDelete(id)}
+        className="absolute top-2 right-2 text-gray-500 hover:text-red-500 transition-colors"
+        title="Delete reminder"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+        </svg>
+      </button>
       <div className="font-medium text-lg">
         {format(parsedDate, 'EEEE, d MMMM yyyy')}
       </div>
@@ -23,69 +32,91 @@ const Reminders = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  const fetchReminders = async () => {
+    // Check for token in multiple possible locations
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+
+    if (!token) {
+      setError('Authentication required. Redirecting to login...');
+      setTimeout(() => navigate('/login'), 2000);
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3000/api/scheduled-collection/reminders', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (response.status === 401) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('token');
+        throw new Error('Session expired. Please login again.');
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!data || !data.success) {
+        throw new Error(data.message || 'Invalid response format');
+      }
+
+      if (Array.isArray(data.data)) {
+        const sortedReminders = data.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setReminders(sortedReminders.slice(0, 2));
+      } else {
+        throw new Error('Unexpected data format');
+      }
+    } catch (err) {
+      console.error('Fetch error:', err);
+      setError(err.message);
+      if (err.message.includes('expired') || err.message.includes('invalid')) {
+        navigate('/login');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchReminders = async () => {
-      // Check for token in multiple possible locations
-      const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-
-      if (!token) {
-        setError('Authentication required. Redirecting to login...');
-        setTimeout(() => navigate('/login'), 2000);
-        return;
-      }
-
-      try {
-        const response = await fetch('http://localhost:3000/api/scheduled-collection/reminders', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          credentials: 'include' // Important for cookies if using them
-        });
-
-        // Handle unauthorized (401) specifically
-        if (response.status === 401) {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('token');
-          throw new Error('Session expired. Please login again.');
-        }
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-
-        // More robust data validation
-        if (!data || !data.success) {
-          throw new Error(data.message || 'Invalid response format');
-        }
-
-        if (Array.isArray(data.data)) {
-          // Sort reminders by date and slice to get only the first two
-          const sortedReminders = data.data.sort((a, b) => new Date(b.date) - new Date(a.date));
-          setReminders(sortedReminders.slice(0, 2));
-        } else {
-          throw new Error('Unexpected data format');
-        }
-      } catch (err) {
-        console.error('Fetch error:', err);
-        setError(err.message);
-        if (err.message.includes('expired') || err.message.includes('invalid')) {
-          navigate('/login');
-        }
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchReminders();
   }, [navigate]);
+
+  const handleDelete = async (id) => {
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
+    
+    try {
+      const response = await fetch(`http://localhost:3000/api/scheduled-collection/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete reminder');
+      }
+
+      // Remove the deleted reminder from state
+      setReminders(reminders.filter(reminder => reminder._id !== id));
+    } catch (err) {
+      console.error('Delete error:', err);
+      setError('Failed to delete reminder. Please try again.');
+    }
+  };
 
   const handleRetry = () => {
     setError(null);
     setLoading(true);
-    useEffect(() => { }, []); // This will re-run the effect
+    fetchReminders();
   };
 
   return (
@@ -139,8 +170,10 @@ const Reminders = () => {
           {reminders.map((reminder) => (
             <ReminderCard
               key={reminder._id}
+              id={reminder._id}
               date={reminder.date}
               location={reminder.location}
+              onDelete={handleDelete}
             />
           ))}
         </div>
