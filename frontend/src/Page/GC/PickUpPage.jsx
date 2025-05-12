@@ -44,7 +44,7 @@ const PickUpPage = () => {
                 // Set time to midnight for consistent comparison
                 date.setHours(0, 0, 0, 0);
                 const dateStr = date.toISOString();
-                
+
                 if (!acc[dateStr]) {
                     acc[dateStr] = 1;
                 } else {
@@ -70,21 +70,21 @@ const PickUpPage = () => {
     const handleDateSelect = (selectedDate) => {
         setDate(selectedDate);
         setShowPickups(true);
-        
+
         // Set time to midnight for consistent comparison
         const normalizedSelectedDate = new Date(selectedDate);
         normalizedSelectedDate.setHours(0, 0, 0, 0);
-        
+
         // Filter collections for selected date
         const dateCollections = assignedCollections.filter(collection => {
             const collectionDate = new Date(collection.date);
             collectionDate.setHours(0, 0, 0, 0);
             return collectionDate.getTime() === normalizedSelectedDate.getTime();
         });
-        
+
         console.log('Selected date:', normalizedSelectedDate);
         console.log('Collections for date:', dateCollections);
-        
+
         // Map the collections to the pickup format
         const formattedPickups = dateCollections.map(collection => ({
             id: collection._id,
@@ -107,7 +107,7 @@ const PickUpPage = () => {
 
             // For "Not Arrived" and "On the Way", just update the status locally
             if (newStatus === "not arrived" || newStatus === "on the way") {
-                setPickups(prev => prev.map(pickup => 
+                setPickups(prev => prev.map(pickup =>
                     pickup.id === pickupId ? { ...pickup, status: newStatus.toLowerCase() } : pickup
                 ));
                 toast.success(`Status updated to ${newStatus}`);
@@ -125,10 +125,10 @@ const PickUpPage = () => {
                 if (response.data) {
                     // Remove from current view
                     setPickups(prev => prev.filter(pickup => pickup.id !== pickupId));
-                    
+
                     // Refresh the calendar to update the events
                     await fetchAssignedCollections();
-                    
+
                     toast.success('Pickup completed successfully!');
                 }
             }
@@ -176,8 +176,12 @@ const PickUpPage = () => {
                                     {pickups.map((pickup) => (
                                         <div key={pickup.id} className="bg-white rounded-lg shadow p-4">
                                             <div className="flex items-center gap-4">
-                                                <Avatar className="h-12 w-12 bg-gray-200">
-                                                    {pickup.name.charAt(0)}
+                                                <Avatar className="h-12 w-12">
+                                                    <img
+                                                        src="https://www.svgrepo.com/show/452030/avatar-default.svg"
+                                                        alt="Default Avatar"
+                                                        className="h-12 w-12 rounded-full object-cover"
+                                                    />
                                                 </Avatar>
                                                 <div className="flex-1">
                                                     <h3 className="font-semibold">{pickup.name}</h3>
