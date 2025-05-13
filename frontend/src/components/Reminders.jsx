@@ -6,7 +6,7 @@ const ReminderCard = ({ date, location, onDelete, id, onClick, hasCollector }) =
   const parsedDate = new Date(date);
 
   return (
-    <div 
+    <div
       className="border border-gray-200 rounded-lg p-4 mb-4 shadow-sm hover:shadow-md transition-shadow relative cursor-pointer"
       onClick={() => onClick(id)}
     >
@@ -15,7 +15,7 @@ const ReminderCard = ({ date, location, onDelete, id, onClick, hasCollector }) =
           Collector Assigned
         </div>
       ) : (
-        <button 
+        <button
           onClick={(e) => {
             e.stopPropagation();
             onDelete(id);
@@ -65,12 +65,11 @@ const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
             </div>
             <div>
               <h3 className="font-semibold text-gray-700">Status</h3>
-              <p className={`inline-block px-3 py-1 rounded-full text-sm ${
-                schedule.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                schedule.status === 'Assigned' ? 'bg-blue-100 text-blue-800' :
-                schedule.status === 'Picked Up' ? 'bg-green-100 text-green-800' :
-                'bg-gray-100 text-gray-800'
-              }`}>
+              <p className={`inline-block px-3 py-1 rounded-full text-sm ${schedule.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                  schedule.status === 'Assigned' ? 'bg-blue-100 text-blue-800' :
+                    schedule.status === 'Picked Up' ? 'bg-green-100 text-green-800' :
+                      'bg-gray-100 text-gray-800'
+                }`}>
                 {schedule.status}
               </p>
             </div>
@@ -87,11 +86,11 @@ const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
+            {/* <div>
               <h3 className="font-semibold text-gray-700">Waste Type</h3>
               <p className="text-gray-600">{schedule.wasteType}</p>
-            </div>
-            <div>
+            </div> */}
+            {/* <div>
               <h3 className="font-semibold text-gray-700">Priority</h3>
               <p className={`inline-block px-3 py-1 rounded-full text-sm ${
                 schedule.priority === 'High' ? 'bg-red-100 text-red-800' :
@@ -100,7 +99,7 @@ const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
               }`}>
                 {schedule.priority}
               </p>
-            </div>
+            </div> */}
           </div>
 
           {schedule.notes && (
@@ -189,7 +188,7 @@ const Reminders = () => {
   const handleDelete = async (id) => {
     const token = localStorage.getItem('authToken') || localStorage.getItem('token');
     setDeleteError(null);
-    
+
     try {
       const response = await fetch(`http://localhost:3000/api/scheduled-collection/${id}`, {
         method: 'DELETE',
