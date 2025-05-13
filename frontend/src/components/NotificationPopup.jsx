@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { AlertCircle, Bell, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { toast } from 'react-hot-toast';
 
 const NotificationPopup = () => {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [noticeToDelete, setNoticeToDelete] = useState(null);
 
   // Replace this with however you actually get the user's role:
   // e.g. from your auth context or localStorage
@@ -20,6 +22,7 @@ const NotificationPopup = () => {
         setNotifications(data);
       } catch (err) {
         console.error('Failed to load notifications:', err);
+        toast.error('Failed to load notifications');
       }
     };
 
@@ -28,6 +31,31 @@ const NotificationPopup = () => {
       fetchNotifications();
     }
   }, [userRole, open]);
+
+  const handleDeleteClick = (id) => {
+    setNoticeToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await axios.delete(`http://localhost:3000/api/notices/${noticeToDelete}`);
+      setNotifications(notifications.filter((n) => n._id !== noticeToDelete));
+      setNoticeToDelete(null);
+      toast.success('Notification deleted successfully!', {
+        duration: 3000,
+        position: 'top-right',
+      });
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete notification', {
+        duration: 3000,
+        position: 'top-right',
+      });
+    }
+  };
+
+  const cancelDelete = () => {
+    setNoticeToDelete(null);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -72,6 +100,36 @@ const NotificationPopup = () => {
                       {new Date(n.createdAt).toLocaleString()}
                     </p>
                     <p className="text-sm text-gray-700 mt-1">{n.description}</p>
+                  </div>
+                  <div className="relative">
+                    <button
+                      onClick={() => handleDeleteClick(n._id)}
+                      className="text-red-600 hover:text-red-800 text-sm"
+                    >
+                      Delete
+                    </button>
+
+                    {noticeToDelete === n._id && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-300 shadow-lg p-4 rounded z-50">
+                        <p className="text-base font-semibold text-gray-800 mb-4">
+                          Are you sure you want to delete this notification?
+                        </p>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={cancelDelete}
+                            className="px-3 py-1 bg-gray-400 text-white rounded text-sm"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            onClick={confirmDelete}
+                            className="px-3 py-1 bg-red-600 text-white rounded text-sm"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

@@ -105,32 +105,46 @@ const PickUpPage = () => {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
 
-            // For "Not Arrived" and "On the Way", just update the status locally
-            if (newStatus === "not arrived" || newStatus === "on the way") {
+            // Map the status to the correct format
+            const statusMap = {
+                'pending': 'Pending',
+                'not arrived': 'Not Arrived',
+                'on the way': 'On the Way',
+                'picked up': 'Picked Up'
+            };
+
+            const formattedStatus = statusMap[newStatus.toLowerCase()];
+            if (!formattedStatus) {
+                throw new Error('Invalid status value');
+            }
+
+            console.log('Updating status to:', formattedStatus);
+
+            // Update all statuses in the backend
+            const response = await axios.put(
+                `http://localhost:3000/api/scheduled-collection/status/${pickupId}`,
+                { status: formattedStatus },
+                { 
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (response.data) {
+                // Update local state
                 setPickups(prev => prev.map(pickup =>
                     pickup.id === pickupId ? { ...pickup, status: newStatus.toLowerCase() } : pickup
                 ));
-                toast.success(`Status updated to ${newStatus}`);
-                return;
-            }
 
-            // For "Picked Up", update the backend and handle the completion
-            if (newStatus === "picked up") {
-                const response = await axios.put(
-                    `http://localhost:3000/api/scheduled-collection/status/${pickupId}`,
-                    { status: "Picked Up" }, // Send capitalized status to backend
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
-
-                if (response.data) {
-                    // Remove from current view
+                // If status is "picked up", remove from current view and refresh calendar
+                if (newStatus === "picked up") {
                     setPickups(prev => prev.filter(pickup => pickup.id !== pickupId));
-
-                    // Refresh the calendar to update the events
                     await fetchAssignedCollections();
-
-                    toast.success('Pickup completed successfully!');
                 }
+
+                toast.success(`Status updated to ${formattedStatus}`);
             }
         } catch (error) {
             console.error('Error updating status:', error);
@@ -138,8 +152,10 @@ const PickUpPage = () => {
                 toast.error('You are not authorized to update this pickup');
             } else if (error.response?.status === 404) {
                 toast.error('Pickup not found');
+            } else if (error.response?.data?.message) {
+                toast.error(error.response.data.message);
             } else {
-                toast.error(error.response?.data?.message || 'Failed to update status');
+                toast.error('Failed to update status. Please try again.');
             }
         }
     };

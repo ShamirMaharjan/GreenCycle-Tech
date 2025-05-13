@@ -2,8 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
-const ReminderCard = ({ date, location, onDelete, id, onClick, hasCollector }) => {
+const ReminderCard = ({ date, location, onDelete, id, onClick, hasCollector, status }) => {
   const parsedDate = new Date(date);
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'not arrived':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'on the way':
+        return 'bg-blue-100 text-blue-800';
+      case 'picked up':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div
@@ -32,12 +45,32 @@ const ReminderCard = ({ date, location, onDelete, id, onClick, hasCollector }) =
       <div className="text-gray-600 mt-1">
         <span className="font-semibold">Location:</span> {location}
       </div>
+      {status && (
+        <div className="mt-2">
+          <span className={`inline-block px-3 py-1 rounded-full text-sm ${getStatusColor(status)}`}>
+            {status}
+          </span>
+        </div>
+      )}
     </div>
   );
 };
 
 const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
   if (!isOpen || !schedule) return null;
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'not arrived':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'on the way':
+        return 'bg-blue-100 text-blue-800';
+      case 'picked up':
+        return 'bg-green-100 text-green-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -65,11 +98,7 @@ const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
             </div>
             <div>
               <h3 className="font-semibold text-gray-700">Status</h3>
-              <p className={`inline-block px-3 py-1 rounded-full text-sm ${schedule.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                  schedule.status === 'Assigned' ? 'bg-blue-100 text-blue-800' :
-                    schedule.status === 'Picked Up' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
-                }`}>
+              <p className={`inline-block px-3 py-1 rounded-full text-sm ${getStatusColor(schedule.status)}`}>
                 {schedule.status}
               </p>
             </div>
@@ -301,6 +330,7 @@ const Reminders = () => {
               onDelete={handleDelete}
               onClick={handleScheduleClick}
               hasCollector={!!reminder.collectorId}
+              status={reminder.status}
             />
           ))}
         </div>

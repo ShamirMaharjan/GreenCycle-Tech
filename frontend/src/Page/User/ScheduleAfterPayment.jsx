@@ -4,7 +4,7 @@ import Header from "../../components/Header";
 import Sidebar from '../../components/Sidebar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ChevronLeft, Calendar, MapPin, Info } from 'lucide-react';
+import { ChevronLeft, Calendar, MapPin, Info, ChevronDown, Navigation } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import FormCalendar from '@/components/FormCalendar';
 import { format } from 'date-fns';
@@ -13,9 +13,18 @@ const ScheduleAfterPayment = () => {
     const navigate = useNavigate();
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [location, setLocation] = useState('');
-    const [description, setDescription] = useState('');
+    const [landmark, setLandmark] = useState('');
     const [showCalendar, setShowCalendar] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [showLocationDropdown, setShowLocationDropdown] = useState(false);
+
+    const locations = [
+        'Koteshwor',
+        'Baneshwor',
+        'Naxal',
+        'Chabhil',
+        'Kalanki'
+    ];
 
     useEffect(() => {
         const token = localStorage.getItem('token');
@@ -30,7 +39,40 @@ const ScheduleAfterPayment = () => {
         setShowCalendar(false);
     };
 
+    const handleLocationSelect = (selectedLocation) => {
+        setLocation(selectedLocation);
+        setShowLocationDropdown(false);
+    };
+
     const handleSubmit = async () => {
+        if (!location) {
+            toast.error('Please select a location', {
+                duration: 3000,
+                position: 'top-right',
+                style: {
+                    background: '#F87171',
+                    color: '#fff',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }
+            });
+            return;
+        }
+
+        if (!landmark) {
+            toast.error('Please provide a landmark', {
+                duration: 3000,
+                position: 'top-right',
+                style: {
+                    background: '#F87171',
+                    color: '#fff',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }
+            });
+            return;
+        }
+
         setIsLoading(true);
         try {
             const token = localStorage.getItem('token');
@@ -43,7 +85,7 @@ const ScheduleAfterPayment = () => {
                 body: JSON.stringify({
                     date: selectedDate.toISOString(),
                     location,
-                    description
+                    description: landmark
                 })
             });
 
@@ -128,31 +170,46 @@ const ScheduleAfterPayment = () => {
                                 )}
                             </div>
 
-                            {/* Location Input */}
+                            {/* Location Dropdown */}
                             <div className="relative">
                                 <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
                                     <MapPin className="text-green-500" size={22} />
                                 </div>
+                                <div 
+                                    className="text-lg w-full pl-12 pr-4 py-4 border border-green-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-300 transition-shadow cursor-pointer flex justify-between items-center"
+                                    onClick={() => setShowLocationDropdown(!showLocationDropdown)}
+                                >
+                                    <span className={location ? 'text-gray-900' : 'text-gray-500'}>
+                                        {location || 'Select collection location'}
+                                    </span>
+                                    <ChevronDown className="text-green-500" size={20} />
+                                </div>
+                                {showLocationDropdown && (
+                                    <div className="absolute z-10 mt-2 w-full bg-white border border-green-200 rounded-xl shadow-lg">
+                                        {locations.map((loc) => (
+                                            <div
+                                                key={loc}
+                                                className="px-4 py-3 hover:bg-green-50 cursor-pointer text-gray-700 hover:text-green-700 transition-colors"
+                                                onClick={() => handleLocationSelect(loc)}
+                                            >
+                                                {loc}
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Landmark Input */}
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                    <Navigation className="text-green-500" size={22} />
+                                </div>
                                 <input
                                     type="text"
                                     className="text-lg w-full pl-12 pr-4 py-4 border border-green-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-300 transition-shadow"
-                                    value={location}
-                                    onChange={(e) => setLocation(e.target.value)}
-                                    placeholder="Enter collection location"
-                                />
-                            </div>
-
-                            {/* Description Input */}
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                    <Info className="text-green-500" size={22} />
-                                </div>
-                                <Textarea
-                                    className="text-lg w-full pl-12 pr-4 py-4 border border-green-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-300 transition-shadow resize-none"
-                                    rows={4}
-                                    value={description}
-                                    onChange={(e) => setDescription(e.target.value)}
-                                    placeholder="Describe the waste to be collected..."
+                                    value={landmark}
+                                    onChange={(e) => setLandmark(e.target.value)}
+                                    placeholder="Enter nearby landmark (e.g., near City Center, behind Hospital)"
                                 />
                             </div>
 
