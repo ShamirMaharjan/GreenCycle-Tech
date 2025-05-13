@@ -7,6 +7,8 @@ import sidebarBg from '../../assets/backgroundimage.png';
 
 const AdminContactPage = () => {
   const [messages, setMessages] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -25,15 +27,22 @@ const AdminContactPage = () => {
     fetchMessages();
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setShowModal(true);
+  };
+
+  const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:3000/api/contact/${id}`, {
+      await axios.delete(`http://localhost:3000/api/contact/${deleteId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setMessages(messages.filter((msg) => msg._id !== id));
+      setMessages(messages.filter((msg) => msg._id !== deleteId));
+      setShowModal(false);
+      setDeleteId(null);
     } catch (error) {
       console.error('Error deleting message:', error);
     }
@@ -57,7 +66,6 @@ const AdminContactPage = () => {
             <h2 className="text-lg font-bold text-white text-center">GREEN CYCLE TECH</h2>
           </div>
           <div className="relative z-10 space-y-1">
-            {/* <Link to="/adminhome" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">Home</Link> */}
             <Link to="/users" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">DASHBOARD</Link>
             <Link to="/notice" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">NOTICE</Link>
             <Link to="/requestPage" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">REQUEST</Link>
@@ -85,7 +93,12 @@ const AdminContactPage = () => {
                     <p><strong>Subject:</strong> {msg.subject}</p>
                     <p><strong>Message:</strong> {msg.message}</p>
                     <p><strong>Sent:</strong> {new Date(msg.createdAt).toLocaleString()}</p>
-                    <Button onClick={() => handleDelete(msg._id)} className="mt-2 bg-red-600 text-white">Delete</Button>
+                    <Button
+                      onClick={() => handleDeleteClick(msg._id)}
+                      className="mt-2 bg-red-600 text-white"
+                    >
+                      Delete
+                    </Button>
                   </li>
                 ))}
               </ul>
@@ -93,6 +106,30 @@ const AdminContactPage = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white/30 backdrop-blur-sm">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h3 className="text-xl font-semibold mb-4">Confirm Deletion</h3>
+            <p>Are you sure you want to delete this message?</p>
+            <div className="mt-6 flex justify-end space-x-4">
+              <Button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-300 text-black hover:bg-gray-400"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmDelete}
+                className="bg-red-600 text-white hover:bg-red-700"
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
