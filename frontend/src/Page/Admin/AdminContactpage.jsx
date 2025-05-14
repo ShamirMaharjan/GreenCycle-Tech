@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import sidebarBg from '../../assets/backgroundimage.png';
 
@@ -9,6 +9,7 @@ const AdminContactPage = () => {
   const [messages, setMessages] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -74,8 +75,14 @@ const AdminContactPage = () => {
 
         {/* Main Content */}
         <div className="flex-1 p-8">
-          <header className="mb-6">
+          <header className="mb-6 flex justify-between items-center">
             <h2 className="text-2xl font-bold text-black">Feedback PAGE</h2>
+            <Button
+              onClick={() => navigate('/notice')}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              Back to Notice
+            </Button>
           </header>
 
           {/* Display Messages */}
