@@ -86,11 +86,15 @@ app.post("/initiate-payment", authMiddleware, EsewaInitiatePayment);
 app.post("/payment-status", paymentStatus);
 app.get("/payment-status", authMiddleware, checkUserPaymentStatus);
 
+// Serve static files from uploads directory
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // API Routes
 app.use("/api/users", require("./routes/user"));
 app.use("/api/articles", require("./routes/articles"));
 app.use("/api/notices", require("./routes/notice"));
 app.use("/api/scheduled-collection", require("./routes/scheduledCollection"));
+app.use("/api/locations", require("./routes/location"));
 
 // Import the contact routes
 const contactRoutes = require('./routes/contactRoutes');
