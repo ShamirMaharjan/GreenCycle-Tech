@@ -21,7 +21,7 @@ const HomePage = () => {
                             <h1 className="text-4xl md:text-5xl font-bold mb-4">Sustainable Waste Management for a Cleaner Future</h1>
                             <p className="text-xl mb-8 text-green-100">Join the green revolution and make a positive impact on our environment by managing your waste efficiently.</p>
                             <div className="flex flex-wrap gap-4">
-                                <Link to="/schedule/new">
+                                <Link to="/schedule/after-payment">
                                     <Button size="lg" className="bg-white text-green-800 hover:bg-green-100">
                                         Schedule a Pickup <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>

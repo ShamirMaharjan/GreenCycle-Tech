@@ -6,9 +6,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 const NotificationPopup = () => {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
-
-  // Replace this with however you actually get the user's role:
-  // e.g. from your auth context or localStorage
   const userRole = localStorage.getItem('role') || 'User';
 
   useEffect(() => {
@@ -23,7 +20,6 @@ const NotificationPopup = () => {
       }
     };
 
-    // Fetch whenever the popover opens (optional) or on mount
     if (open) {
       fetchNotifications();
     }
@@ -31,25 +27,25 @@ const NotificationPopup = () => {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <button className="p-2 relative">
+      <PopoverTrigger>
+        <div className="p-2 relative cursor-pointer inline-flex items-center justify-center">
           <Bell size={24} />
           {notifications.length > 0 && (
             <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
           )}
-        </button>
+        </div>
       </PopoverTrigger>
 
       <PopoverContent className="w-80 p-0" align="end">
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div className="flex justify-between items-center px-4 py-3 border-b">
             <h3 className="font-medium">Notifications</h3>
-            <button
+            <div
               onClick={() => setOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-gray-700 cursor-pointer"
             >
               <X size={18} />
-            </button>
+            </div>
           </div>
 
           <div className="max-h-[400px] overflow-y-auto">
