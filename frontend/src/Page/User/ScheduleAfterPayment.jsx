@@ -8,6 +8,7 @@ import { ChevronLeft, Calendar, MapPin } from "lucide-react";
 import { toast } from "react-hot-toast";
 import FormCalendar from "@/components/FormCalendar";
 import { format } from "date-fns";
+import katmanduMap from "../../../public/assets/kathmandu-map-2.jpg"; // Adjust the path to your image locatio
 
 const ScheduleAfterPayment = () => {
   const navigate = useNavigate();
@@ -171,7 +172,7 @@ const ScheduleAfterPayment = () => {
               </div>
 
               {/* Waste Type Selection */}
-              <div className="relative">
+              {/* <div className="relative">
                 <select
                   className="text-lg w-full px-4 py-4 border border-green-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-300 transition-shadow"
                   value={wasteType}
@@ -182,10 +183,10 @@ const ScheduleAfterPayment = () => {
                   <option value="Organic">Organic Waste</option>
                   <option value="Hazardous">Hazardous Waste</option>
                 </select>
-              </div>
+              </div> */}
 
               {/* Priority Selection */}
-              <div className="relative">
+              {/* <div className="relative">
                 <select
                   className="text-lg w-full px-4 py-4 border border-green-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-300 transition-shadow"
                   value={priority}
@@ -195,10 +196,10 @@ const ScheduleAfterPayment = () => {
                   <option value="Medium">Medium Priority</option>
                   <option value="High">High Priority</option>
                 </select>
-              </div>
+              </div> */}
 
               {/* Notes Input */}
-              <div className="relative">
+              {/* <div className="relative">
                 <textarea
                   className="text-lg w-full px-4 py-4 border border-green-200 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-300 transition-shadow"
                   placeholder="Additional Notes (optional)"
@@ -206,18 +207,26 @@ const ScheduleAfterPayment = () => {
                   onChange={(e) => setNotes(e.target.value)}
                   rows={3}
                 />
-              </div>
+              </div> */}
 
               {/* Location Image */}
-              {selectedLocation && (
-                <div className="mt-4">
+              <div className="mt-4 relative" style={{ height: 'auto', minHeight: '400px' }}>
+                {selectedLocation && selectedLocation.imageFilename ? (
                   <img
                     src={`http://localhost:3000/uploads/${selectedLocation.imageFilename}`}
                     alt={selectedLocation.name}
-                    className="w-full h-64 object-cover rounded-xl"
+                    className="w-full rounded-xl"
+                    style={{ objectFit: 'contain', maxHeight: '600px' }}
                   />
-                </div>
-              )}
+                ) : (
+                  <img
+                    src={katmanduMap}
+                    alt="Location Image"
+                    className="w-full rounded-xl"
+                    style={{ objectFit: 'contain', maxHeight: '600px' }}
+                  />
+                )}
+              </div>
 
               {/* Submit Button */}
               <div className="flex justify-end">
