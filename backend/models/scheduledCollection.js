@@ -3,16 +3,10 @@ const mongoose = require("mongoose");
 const scheduledCollectionSchema = new mongoose.Schema({
   date: { type: Date, required: true },
   location: { type: String, required: true },
-  description: { type: String, required: true },
   wasteType: { 
     type: String, 
     enum: ["General", "Recyclable", "Hazardous", "Organic"],
     default: "General"
-  },
-  priority: {
-    type: String,
-    enum: ["Low", "Medium", "High"],
-    default: "Medium"
   },
   notes: { type: String },
   status: {
@@ -26,7 +20,6 @@ const scheduledCollectionSchema = new mongoose.Schema({
   clientEmail: { type: String, required: true },
   clientPhone: { type: String, required: true },
   clientAddress: { type: String, required: true },
-  estimatedTime: { type: String },
   actualPickupTime: { type: Date },
   feedback: {
     rating: { type: Number, min: 1, max: 5 },
@@ -45,7 +38,6 @@ scheduledCollectionSchema.virtual('timeUntilPickup').get(function() {
 
 // Add index for better query performance
 scheduledCollectionSchema.index({ date: 1, status: 1 });
-scheduledCollectionSchema.index({ clientId: 1, status: 1 });
 scheduledCollectionSchema.index({ collectorId: 1, status: 1 });
 
 module.exports = mongoose.model("ScheduledCollection", scheduledCollectionSchema);

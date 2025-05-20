@@ -56,7 +56,8 @@ const FormCalendar = ({
     // Check if a date is in the past
     const isPastDate = (day) => {
         if (!day) return false;
-        return isBefore(day, startOfDay(new Date()));
+        const today = startOfDay(new Date());
+        return day <= today;
     };
 
     // Generate weeks for the calendar grid

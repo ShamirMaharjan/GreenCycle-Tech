@@ -6,6 +6,7 @@ import Calendar2 from '@/components/Calender2';
 import { Plus } from 'lucide-react';
 import { format } from 'date-fns';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 
 const Schedule = () => {
     const navigate = useNavigate();
@@ -19,27 +20,27 @@ const Schedule = () => {
     useEffect(() => {
         const fetchReminders = async () => {
             try {
-                const res = await fetch('http://localhost:3000/api/scheduled-collection/reminders', {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
+
+                const response = await axios.get('http://localhost:3000/api/scheduled-collection/reminders', {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                        Authorization: `Bearer ${token}`
                     }
                 });
                 
-                if (!res.ok) {
-                    throw new Error(`HTTP error! status: ${res.status}`);
-                }
-                
-                const data = await res.json();
-                
-                if (Array.isArray(data)) {
-                    setReminders(data);
+                if (response.data.success) {
+                    setReminders(response.data.data);
                 } else {
-                    console.error("Reminders are not an array", data);
-                    setReminders([]);
+                    console.error("Failed to fetch reminders:", response.data);
+                    toast.error("Failed to load scheduled collections");
                 }
             } catch (err) {
                 console.error('Error fetching reminders:', err);
-                setReminders([]);
+                toast.error("Failed to load scheduled collections");
             }
         };
 
@@ -84,14 +85,19 @@ const Schedule = () => {
         setShowDayView(false);
     };
 
-    const events = reminders.map(reminder => ({
+    // Transform reminders into calendar events
+    const events = reminders
+      .filter(reminder => reminder.status !== "Picked Up")
+      .map(reminder => ({
         date: new Date(reminder.date),
-        label: 'Booked'
-    }));
+        label: reminder.status === 'Pending' ? 'Booked' : reminder.status
+      }));
 
-    const dayReminders = reminders.filter(reminder =>
-        new Date(reminder.date).toDateString() === selectedDate.toDateString()
-    );
+    const dayReminders = reminders
+      .filter(reminder => 
+        new Date(reminder.date).toDateString() === selectedDate.toDateString() &&
+        reminder.status !== "Picked Up"
+      );
 
     return (
         <div className="flex min-h-screen bg-gray-100">
@@ -129,24 +135,29 @@ const Schedule = () => {
                             <div className="p-4 font-bold text-center bg-gray-100">
                                 {format(selectedDate, 'EEEE, MMMM d, yyyy')}
                             </div>
-
-                            <div className="p-4 space-y-4">
+                            <div className="p-4">
                                 {dayReminders.map((reminder, index) => (
-                                    <div
-                                        key={index}
-                                        className="bg-yellow-100 p-3 rounded"
-                                    >
-                                        <h3 className="font-semibold">Booked Collection</h3>
-                                        <p className="text-sm">Time: {reminder.time || 'Not specified'}</p>
-                                        <p className="text-sm">Location: {reminder.location}</p>
+                                    <div key={index} className="mb-4 p-4 border rounded-lg">
+                                        <div className="flex justify-between items-center">
+                                            <div>
+                                                <p className="font-semibold">Location: {reminder.location}</p>
+                                                <p className="text-sm text-gray-600">Status: {reminder.status}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-sm text-gray-600">
+                                                    Date: {format(new Date(reminder.date), 'dd MMMM yyyy')}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
-
+                            </div>
+                            <div className="p-4 border-t">
                                 <button
-                                    className="bg-white border border-gray-300 rounded-full px-4 py-1 text-sm"
                                     onClick={handleBackToMonth}
+                                    className="text-blue-600 hover:text-blue-800"
                                 >
-                                    Back to Month View
+                                    Back to Calendar
                                 </button>
                             </div>
                         </div>

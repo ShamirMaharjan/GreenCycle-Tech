@@ -29,7 +29,7 @@ const sendEmailNotification = async (to, subject, html) => {
 // User schedules a pickup
 exports.addScheduledCollection = async (req, res) => {
   try {
-    const { date, location, description, wasteType, priority, notes, estimatedTime } = req.body;
+    const { date, location, description, wasteType, notes } = req.body;
     const userId = req.user._id;
 
     // Validate date is in the future
@@ -47,9 +47,7 @@ exports.addScheduledCollection = async (req, res) => {
       location,
       description,
       wasteType,
-      priority,
       notes,
-      estimatedTime,
       clientId: userId,
       clientName: user.name,
       clientEmail: user.email,
@@ -132,7 +130,7 @@ exports.getPendingRequests = async (req, res) => {
   try {
     const collections = await ScheduledCollection.find({
       status: { $in: ["Pending", "Assigned"] }
-    }).sort({ date: 1, priority: -1 });
+    }).sort({ date: 1 });
 
     res.status(200).json(collections);
   } catch (error) {
@@ -270,22 +268,45 @@ exports.updateStatus = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to update this collection" });
     }
 
+    // Validate status
+    const validStatuses = ["Not Arrived", "On the Way", "Picked Up"];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
     // Update the status
     collection.status = status;
     
-    // If status is Picked Up, add to user history
+    // If status is "On the Way", send a notification to the client
+    if (status === "On the Way") {
+      try {
+        await sendEmailNotification(
+          collection.clientEmail,
+          "Garbage Collector is On the Way",
+          `<h1>Your garbage collector is on the way!</h1>
+           <p>Date: ${new Date(collection.date).toLocaleDateString()}</p>
+           <p>Location: ${collection.location}</p>
+           <p>Please be ready for the collection.</p>`
+        );
+      } catch (emailError) {
+        console.error("Error sending email notification:", emailError);
+        // Continue with the response even if email fails
+      }
+    }
+    
+    // If status is Picked Up, add to user history and remove from active collections
     if (status === "Picked Up") {
       try {
-      collection.actualPickupTime = new Date();
-      
+        collection.actualPickupTime = new Date();
+        
         console.log("Creating history entry for user:", collection.clientId);
         
         // Add to user history with all necessary fields
-      const history = new UserHistory({
-        userId: collection.clientId,
-        location: collection.location,
-        wasteType: collection.wasteType,
-        date: collection.date,
+        const history = new UserHistory({
+          userId: collection.clientId,
+          location: collection.location,
+          wasteType: collection.wasteType,
+          date: collection.date,
           status: "Completed",
           description: collection.description,
           actualPickupTime: collection.actualPickupTime,
@@ -294,47 +315,41 @@ exports.updateStatus = async (req, res) => {
           clientPhone: collection.clientPhone,
           clientAddress: collection.clientAddress,
           collectorId: collection.collectorId,
-          priority: collection.priority,
-          notes: collection.notes,
-          estimatedTime: collection.estimatedTime
+          notes: collection.notes
         });
 
         console.log("History entry to be saved:", history);
         const savedHistory = await history.save();
         console.log("History entry saved successfully:", savedHistory);
+
+        // Remove the collection from active collections
+        await ScheduledCollection.findByIdAndDelete(id);
+        
+        res.status(200).json({ 
+          success: true,
+          message: "Collection completed and moved to history", 
+          history: savedHistory
+        });
+        return;
       } catch (historyError) {
         console.error("Error creating history:", historyError);
         // Continue with the status update even if history creation fails
       }
     }
 
-    // Save the collection status update
+    // Save the collection status update for other statuses
     await collection.save();
     console.log("Collection status updated successfully");
 
-    // Try to send notification, but don't fail if it doesn't work
-    try {
-    await sendEmailNotification(
-      collection.clientEmail,
-      "Collection Status Updated",
-      `<h1>Your collection status has been updated</h1>
-       <p>Status: ${status}</p>
-       <p>Date: ${new Date(collection.date).toLocaleDateString()}</p>
-       <p>Location: ${collection.location}</p>`
-    );
-    } catch (emailError) {
-      console.error("Error sending email notification:", emailError);
-      // Continue with the response even if email fails
-    }
-
     res.status(200).json({ 
+      success: true,
       message: "Status updated successfully", 
-      collection,
-      historyCreated: status === "Picked Up"
+      collection
     });
   } catch (error) {
     console.error("Error updating status:", error);
     res.status(500).json({ 
+      success: false,
       message: "Error updating status", 
       error: error.message,
       details: error.stack
@@ -348,9 +363,9 @@ exports.getAssignedCollections = async (req, res) => {
     const collectorId = req.user._id;
     const collections = await ScheduledCollection.find({
       collectorId,
-      status: { $in: ["Assigned", "Not Arrived", "On the Way", "Picked Up"] },
+      status: { $ne: "Pending" },
       date: { $gte: new Date() }
-    }).sort({ date: 1, priority: -1 });
+    }).sort({ date: 1 });
 
     res.status(200).json(collections);
   } catch (error) {
