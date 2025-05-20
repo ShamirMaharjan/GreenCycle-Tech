@@ -31,7 +31,7 @@ const Schedule = () => {
                         Authorization: `Bearer ${token}`
                     }
                 });
-                
+
                 if (response.data.success) {
                     setReminders(response.data.data);
                 } else {
@@ -87,17 +87,17 @@ const Schedule = () => {
 
     // Transform reminders into calendar events
     const events = reminders
-      .filter(reminder => reminder.status !== "Picked Up")
-      .map(reminder => ({
-        date: new Date(reminder.date),
-        label: reminder.status === 'Pending' ? 'Booked' : reminder.status
-      }));
+        .filter(reminder => reminder.status !== "Picked Up")
+        .map(reminder => ({
+            date: new Date(reminder.date),
+            label: reminder.status === 'Pending' ? 'Booked' : reminder.status
+        }));
 
     const dayReminders = reminders
-      .filter(reminder => 
-        new Date(reminder.date).toDateString() === selectedDate.toDateString() &&
-        reminder.status !== "Picked Up"
-      );
+        .filter(reminder =>
+            new Date(reminder.date).toDateString() === selectedDate.toDateString() &&
+            reminder.status !== "Picked Up"
+        );
 
     return (
         <div className="flex min-h-screen bg-gray-100">
@@ -110,7 +110,7 @@ const Schedule = () => {
                     <div className="flex justify-between items-center mb-6">
                         <button
                             className="flex items-center gap-2 bg-white rounded-full py-2 px-4 shadow-sm"
-                            onClick={() => navigate('/schedule/new')}
+                            onClick={() => navigate('/schedule/after-payment')}
                         >
                             <span>Schedule Collection</span>
                             <span className="bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-lg">
