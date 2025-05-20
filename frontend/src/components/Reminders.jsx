@@ -97,10 +97,19 @@ const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
             </div>
           )}
 
-          {schedule.collectorId && (
-            <div>
-              <h3 className="font-semibold text-gray-700">Assigned Collector</h3>
-              <p className="text-gray-600">{schedule.collectorName || 'Collector assigned'}</p>
+          {schedule.status === 'Assigned' && schedule.collectorName && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-700 mb-2">Assigned Collector</h3>
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <span className="text-gray-600 font-medium w-20">Name:</span>
+                  <span className="text-gray-800">{schedule.collectorName}</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-gray-600 font-medium w-20">Phone:</span>
+                  <span className="text-gray-800">{schedule.collectorPhone || 'Not available'}</span>
+                </div>
+              </div>
             </div>
           )}
         </div>

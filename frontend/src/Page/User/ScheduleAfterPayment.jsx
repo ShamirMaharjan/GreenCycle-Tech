@@ -121,6 +121,25 @@ const ScheduleAfterPayment = () => {
         return;
       }
 
+      // Check for existing booking on the same date
+      const response = await axios.get("http://localhost:3000/api/scheduled-collection/reminders", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (response.data.success) {
+        const existingBooking = response.data.data.some(booking => {
+          const bookingDate = new Date(booking.date);
+          const selectedDateCopy = new Date(selectedDate);
+          return bookingDate.toDateString() === selectedDateCopy.toDateString();
+        });
+
+        if (existingBooking) {
+          toast.error("You already have a booking for this date");
+          setIsLoading(false);
+          return;
+        }
+      }
+
       // Get user data from localStorage
       const userData = JSON.parse(localStorage.getItem('userData'));
       if (!userData) {

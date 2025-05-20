@@ -37,6 +37,20 @@ exports.addScheduledCollection = async (req, res) => {
       return res.status(400).json({ message: "Collection date must be in the future" });
     }
 
+    // Check for existing booking on the same date
+    const existingBooking = await ScheduledCollection.findOne({
+      clientId: userId,
+      date: {
+        $gte: new Date(new Date(date).setHours(0, 0, 0, 0)),
+        $lt: new Date(new Date(date).setHours(23, 59, 59, 999))
+      },
+      status: { $in: ["Pending", "Assigned", "Not Arrived", "On the Way"] }
+    });
+
+    if (existingBooking) {
+      return res.status(400).json({ message: "You already have a booking for this date" });
+    }
+
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -65,7 +79,6 @@ exports.addScheduledCollection = async (req, res) => {
       `<h1>Your collection has been scheduled</h1>
        <p>Date: ${new Date(date).toLocaleDateString()}</p>
        <p>Location: ${location}</p>
-       <p>Description: ${description}</p>
        <p>Status: Pending</p>`
     );
 
@@ -84,11 +97,28 @@ exports.getRemainders = async (req, res) => {
       clientId: userId,
       status: { $in: ["Pending", "Assigned", "Not Arrived", "On the Way"] },
       date: { $gte: new Date() }
-    }).sort({ date: 1 });
+    })
+    .populate({
+      path: 'collectorId',
+      select: 'name phoneNumber',
+      model: 'User'
+    })
+    .sort({ date: 1 });
+
+    // Transform the data to include collector information
+    const transformedCollections = collections.map(collection => {
+      const collectionObj = collection.toObject();
+      if (collectionObj.collectorId) {
+        collectionObj.collectorName = collectionObj.collectorId.name;
+        collectionObj.collectorPhone = collectionObj.collectorId.phoneNumber;
+        delete collectionObj.collectorId;
+      }
+      return collectionObj;
+    });
 
     res.status(200).json({
       success: true,
-      data: collections,
+      data: transformedCollections,
     });
   } catch (error) {
     console.error("Error fetching reminders:", error);
