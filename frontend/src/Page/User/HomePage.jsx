@@ -67,7 +67,7 @@ const HomePage = () => {
                     </section>
 
                     {/* Stats Section */}
-                    <section className="mb-16 bg-white rounded-xl shadow-md p-8">
+                    {/* <section className="mb-16 bg-white rounded-xl shadow-md p-8">
                         <h2 className="text-3xl font-bold mb-8 text-center text-green-800">Making a Difference Together</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
                             <div>
@@ -87,7 +87,7 @@ const HomePage = () => {
                                 <p className="text-gray-600">Trees Saved</p>
                             </div>
                         </div>
-                    </section>
+                    </section> */}
 
                     {/* CTA Section */}
                     <section className="bg-green-700 text-white rounded-xl p-8 text-center">
