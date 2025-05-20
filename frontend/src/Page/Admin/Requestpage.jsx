@@ -438,8 +438,6 @@ const RequestPage = () => {
                       <p className="font-semibold">{collector.name}</p>
                       <p className="text-sm text-gray-600">Phone: {collector.phoneNumber}</p>
                       <p className="text-sm text-gray-600">Email: {collector.email}</p>
-                      <p className="text-sm text-gray-600">Area: {collector.collectionArea}</p>
-                      <p className="text-sm text-gray-600">Pickups: {collector.pickups || 0}</p>
                     </div>
                   ))
                 ) : (
@@ -479,7 +477,6 @@ const RequestPage = () => {
               <p><strong>Name:</strong> {collectorDetails.name}</p>
               <p><strong>Phone:</strong> {collectorDetails.phoneNumber}</p>
               <p><strong>Email:</strong> {collectorDetails.email}</p>
-              <p><strong>Area:</strong> {collectorDetails.collectionArea}</p>
               <div className="flex justify-center gap-4 mt-4">
                 <button onClick={closeCollectorPopup} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Close</button>
                 <button onClick={() => handleReassign(collectorDetails.request)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Reassign</button>

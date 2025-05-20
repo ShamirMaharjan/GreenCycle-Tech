@@ -14,7 +14,6 @@ const userSchema = new mongoose.Schema({
   },
   // Garbage collector specific fields
   vehicleNumber: { type: String },
-  collectionArea: { type: String },
   licenseNumber: { type: String },
   verificationImage: { type: String }, // Path to the uploaded image
   isVerified: { type: Boolean, default: false }, // Admin verification status

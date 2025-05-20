@@ -84,6 +84,16 @@ const ScheduleAfterPayment = () => {
       return;
     }
 
+    // Check if the selected date already has a booking
+    const hasBooking = bookedDates.some(bookedDate => 
+      bookedDate.toDateString() === date.toDateString()
+    );
+
+    if (hasBooking) {
+      toast.error("You already have a booking for this date.");
+      return;
+    }
+
     date.setHours(0, 0, 0, 0);
     setSelectedDate(date);
     setShowCalendar(false);

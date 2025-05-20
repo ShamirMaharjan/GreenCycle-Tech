@@ -2,28 +2,67 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { AlertCircle, Bell, X } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { toast } from 'react-hot-toast';
 
 const NotificationPopup = () => {
   const [open, setOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [noticeToDelete, setNoticeToDelete] = useState(null);
   const userRole = localStorage.getItem('role') || 'User';
 
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
+        const token = localStorage.getItem('token');
         const { data } = await axios.get(
-          `http://localhost:3000/api/notices/${encodeURIComponent(userRole)}`
+          'http://localhost:3000/api/notices/user',
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
         );
         setNotifications(data);
       } catch (err) {
         console.error('Failed to load notifications:', err);
+        toast.error('Failed to load notifications');
       }
     };
 
     if (open) {
       fetchNotifications();
     }
-  }, [userRole, open]);
+  }, [open]);
+
+  const handleDeleteClick = (noticeId) => {
+    setNoticeToDelete(noticeId);
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(
+        `http://localhost:3000/api/notices/user/${noticeToDelete}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+      
+      // Remove the deleted notice from the state
+      setNotifications(notifications.filter(n => n._id !== noticeToDelete));
+      setNoticeToDelete(null);
+      toast.success('Notice deleted successfully');
+    } catch (err) {
+      console.error('Failed to delete notice:', err);
+      toast.error('Failed to delete notice');
+    }
+  };
+
+  const cancelDelete = () => {
+    setNoticeToDelete(null);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -55,9 +94,7 @@ const NotificationPopup = () => {
               notifications.map((n) => (
                 <div
                   key={n._id}
-                  className={`flex items-start gap-3 p-3 border-b hover:bg-gray-50 ${
-                    n.read ? 'opacity-70' : ''
-                  }`}
+                  className="flex items-start gap-3 p-3 border-b hover:bg-gray-50"
                 >
                   <div className="mt-1 text-gray-700">
                     <AlertCircle size={18} />
@@ -68,6 +105,35 @@ const NotificationPopup = () => {
                       {new Date(n.createdAt).toLocaleString()}
                     </p>
                     <p className="text-sm text-gray-700 mt-1">{n.description}</p>
+                    <button
+                      onClick={() => handleDeleteClick(n._id)}
+                      className="text-xs text-red-600 hover:text-red-800 mt-2"
+                    >
+                      Delete
+                    </button>
+
+                    {noticeToDelete === n._id && (
+                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
+                          <h3 className="text-lg font-semibold mb-4">Delete Notification</h3>
+                          <p className="text-gray-600 mb-6">Are you sure you want to delete this notification?</p>
+                          <div className="flex justify-end gap-3">
+                            <button
+                              onClick={cancelDelete}
+                              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={confirmDelete}
+                              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))

@@ -112,7 +112,6 @@ const ScheduleForm = () => {
                 value={formData.wasteType}
                 onChange={handleChange}
               >
-                <option value="General">General Waste</option>
                 <option value="Recyclable">Recyclable</option>
                 <option value="Hazardous">Hazardous</option>
                 <option value="Organic">Organic</option>

@@ -111,7 +111,7 @@ const PickUpPage = () => {
             const statusMap = {
                 'pending': 'Pending',
                 'not arrived': 'Not Arrived',
-                'on the way': 'On The Way',
+                'on the way': 'On the Way',
                 'picked up': 'Picked Up'
             };
 

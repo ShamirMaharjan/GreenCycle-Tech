@@ -25,6 +25,7 @@ import {
 
 const TaskManagement = () => {
   const [tasks, setTasks] = useState([]);
+  const [filteredTasks, setFilteredTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [newStatus, setNewStatus] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -38,6 +39,15 @@ const TaskManagement = () => {
     try {
       const response = await axios.get('/api/scheduled-collection/assigned');
       setTasks(response.data);
+      // Filter tasks so that only one schedule per day is allowed
+      const uniqueTasks = response.data.reduce((acc, task) => {
+        const date = new Date(task.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+        if (!acc[date]) {
+          acc[date] = task;
+        }
+        return acc;
+      }, {});
+      setFilteredTasks(Object.values(uniqueTasks));
     } catch (error) {
       toast({
         title: 'Error',
@@ -136,7 +146,7 @@ const TaskManagement = () => {
           </Tr>
         </Thead>
         <Tbody>
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <Tr key={task._id}>
               <Td>{new Date(task.date).toLocaleDateString()}</Td>
               <Td>

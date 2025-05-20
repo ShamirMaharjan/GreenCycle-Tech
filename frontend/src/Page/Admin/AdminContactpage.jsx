@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import sidebarBg from '../../assets/backgroundimage.png';
+import { toast } from 'react-hot-toast';
 
 const AdminContactPage = () => {
   const [messages, setMessages] = useState([]);
+  const [messageToDelete, setMessageToDelete] = useState(null);
 
   useEffect(() => {
     const fetchMessages = async () => {
@@ -20,23 +22,35 @@ const AdminContactPage = () => {
         setMessages(response.data);
       } catch (error) {
         console.error('Error fetching messages:', error);
+        toast.error('Failed to fetch messages');
       }
     };
     fetchMessages();
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDeleteClick = (id) => {
+    setMessageToDelete(id);
+  };
+
+  const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:3000/api/contact/${id}`, {
+      await axios.delete(`http://localhost:3000/api/contact/${messageToDelete}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      setMessages(messages.filter((msg) => msg._id !== id));
+      setMessages(messages.filter((msg) => msg._id !== messageToDelete));
+      setMessageToDelete(null);
+      toast.success('Feedback deleted successfully');
     } catch (error) {
       console.error('Error deleting message:', error);
+      toast.error('Failed to delete feedback');
     }
+  };
+
+  const cancelDelete = () => {
+    setMessageToDelete(null);
   };
 
   return (
@@ -85,7 +99,35 @@ const AdminContactPage = () => {
                     <p><strong>Subject:</strong> {msg.subject}</p>
                     <p><strong>Message:</strong> {msg.message}</p>
                     <p><strong>Sent:</strong> {new Date(msg.createdAt).toLocaleString()}</p>
-                    <Button onClick={() => handleDelete(msg._id)} className="mt-2 bg-red-600 text-white">Delete</Button>
+                    <Button 
+                      onClick={() => handleDeleteClick(msg._id)} 
+                      className="mt-2 bg-red-600 text-white hover:bg-red-700"
+                    >
+                      Delete
+                    </Button>
+
+                    {messageToDelete === msg._id && (
+                      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                        <div className="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full mx-4">
+                          <h3 className="text-lg font-semibold mb-4">Delete Feedback</h3>
+                          <p className="text-gray-600 mb-6">Are you sure you want to delete this feedback?</p>
+                          <div className="flex justify-end gap-3">
+                            <button
+                              onClick={cancelDelete}
+                              className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              onClick={confirmDelete}
+                              className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>

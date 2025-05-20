@@ -17,7 +17,6 @@ const GarbageCollectorSignup = () => {
     password: "",
     confirmPassword: "",
     vehicleNumber: "",
-    collectionArea: "",
     licenseNumber: "",
     verificationImage: null
   });
@@ -124,7 +123,7 @@ const GarbageCollectorSignup = () => {
       return;
     }
 
-    if (!formData.vehicleNumber || !formData.collectionArea || !formData.licenseNumber) {
+    if (!formData.vehicleNumber || !formData.licenseNumber) {
       toast.error("Please fill all garbage collector details", {
         duration: 3000,
         position: 'top-right',
@@ -142,7 +141,6 @@ const GarbageCollectorSignup = () => {
       password: formData.password,
       role: "garbageCollector",
       vehicleNumber: formData.vehicleNumber,
-      collectionArea: formData.collectionArea,
       licenseNumber: formData.licenseNumber
     };
     try {
@@ -281,20 +279,6 @@ const GarbageCollectorSignup = () => {
                 <p className="text-red-500 text-sm mt-1">{vehicleError}</p>
               )}
             </div>
-            <select
-              name="collectionArea"
-              className="input-field"
-              value={formData.collectionArea}
-              onChange={handleChange}
-              required
-            >
-              <option value="">SELECT COLLECTION AREA</option>
-              <option value="Naxal">Naxal</option>
-              <option value="Baneshwor">Baneshwor</option>
-              <option value="Koteshwor">Koteshwor</option>
-              <option value="Balkhu">Balkhu</option>
-              <option value="Boudha">Boudha</option>
-            </select>
             <div>
               <input
                 type="text"

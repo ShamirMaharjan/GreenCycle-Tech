@@ -82,7 +82,7 @@ const CollectionForm = () => {
             const completeFormData = {
                 ...formData,
                 date: selectedDate.toISOString(), // Send full ISO string
-                wasteType: "General", // Default waste type
+                wasteType: "Recyclable", // Default waste type
                 clientName: userData.name,
                 clientEmail: userData.email,
                 clientPhone: userData.phoneNumber || "",

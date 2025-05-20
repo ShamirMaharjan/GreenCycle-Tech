@@ -5,8 +5,8 @@ const scheduledCollectionSchema = new mongoose.Schema({
   location: { type: String, required: true },
   wasteType: { 
     type: String, 
-    enum: ["General", "Recyclable", "Hazardous", "Organic"],
-    default: "General"
+    enum: ["Recyclable", "Hazardous", "Organic"],
+    default: "Recyclable"
   },
   notes: { type: String },
   status: {

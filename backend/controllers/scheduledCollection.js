@@ -29,7 +29,7 @@ const sendEmailNotification = async (to, subject, html) => {
 // User schedules a pickup
 exports.addScheduledCollection = async (req, res) => {
   try {
-    const { date, location, description, wasteType, notes } = req.body;
+    const { date, location, description, wasteType = "Recyclable", notes } = req.body;
     const userId = req.user._id;
 
     // Validate date is in the future
@@ -172,31 +172,14 @@ exports.assignCollector = async (req, res) => {
     // Store the previous collector's ID if it exists
     const previousCollectorId = collection.collectorId;
 
-    // If there was a previous collector, send them a notification about the reassignment first
-    if (previousCollectorId) {
-      const previousCollector = await User.findById(previousCollectorId);
-      if (previousCollector) {
-        try {
-          await sendEmailNotification(
-            previousCollector.email,
-            "Collection Reassigned",
-            `<h1>Your collection has been reassigned</h1>
-             <p>The following collection has been reassigned to another collector:</p>
-             <p>Date: ${new Date(collection.date).toLocaleDateString()}</p>
-             <p>Location: ${collection.location}</p>
-             <p>Client: ${collection.clientName}</p>
-             <p>This collection is no longer assigned to you.</p>`
-          );
-          console.log("Reassignment notification sent to previous collector:", previousCollector.email);
-        } catch (emailError) {
-          console.error("Error sending reassignment notification:", emailError);
-        }
-      }
-    }
-
     // Update only the collector-related fields
     collection.collectorId = collectorId;
     collection.status = "Assigned";
+    
+    // Convert 'General' waste type to 'Recyclable'
+    if (collection.wasteType === 'General') {
+      collection.wasteType = 'Recyclable';
+    }
     
     // Ensure we don't overwrite client information
     if (!collection.clientEmail) {
@@ -209,10 +192,28 @@ exports.assignCollector = async (req, res) => {
       }
     }
 
+    // Save the collection first
     await collection.save();
 
-    // Try to send notifications to new collector and user
+    // Try to send notifications after saving
     try {
+      // If there was a previous collector, send them a notification about the reassignment
+      if (previousCollectorId) {
+        const previousCollector = await User.findById(previousCollectorId);
+        if (previousCollector) {
+          await sendEmailNotification(
+            previousCollector.email,
+            "Collection Reassigned",
+            `<h1>Your collection has been reassigned</h1>
+             <p>The following collection has been reassigned to another collector:</p>
+             <p>Date: ${new Date(collection.date).toLocaleDateString()}</p>
+             <p>Location: ${collection.location}</p>
+             <p>Client: ${collection.clientName}</p>
+             <p>This collection is no longer assigned to you.</p>`
+          );
+        }
+      }
+
       // Send notification to new collector
       await sendEmailNotification(
         collector.email,
@@ -269,7 +270,7 @@ exports.updateStatus = async (req, res) => {
     }
 
     // Validate status
-    const validStatuses = ["Not Arrived", "On the Way", "Picked Up"];
+    const validStatuses = ["Not Arrived", "On the Way", "Picked Up", "Completed", "Cancelled"];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({ message: "Invalid status" });
     }
@@ -395,9 +396,9 @@ exports.getTaskById = async (req, res) => {
 exports.getCollectorHistory = async (req, res) => {
   try {
     const collectorId = req.user._id;
-    const collections = await ScheduledCollection.find({
+    const collections = await UserHistory.find({
       collectorId,
-      status: "Picked Up"
+      status: "Completed"
     }).sort({ date: -1 });
 
     res.status(200).json(collections);

@@ -33,7 +33,15 @@ const Schedule = () => {
                 });
                 
                 if (response.data.success) {
-                    setReminders(response.data.data);
+                    // Filter out duplicate schedules for the same date
+                    const uniqueSchedules = response.data.data.reduce((acc, reminder) => {
+                        const date = new Date(reminder.date).toLocaleDateString();
+                        if (!acc[date]) {
+                            acc[date] = reminder;
+                        }
+                        return acc;
+                    }, {});
+                    setReminders(Object.values(uniqueSchedules));
                 } else {
                     console.error("Failed to fetch reminders:", response.data);
                     toast.error("Failed to load scheduled collections");
@@ -110,7 +118,7 @@ const Schedule = () => {
                     <div className="flex justify-between items-center mb-6">
                         <button
                             className="flex items-center gap-2 bg-white rounded-full py-2 px-4 shadow-sm"
-                            onClick={() => navigate('/schedule/new')}
+                            onClick={() => navigate('/schedule/after-payment')}
                         >
                             <span>Schedule Collection</span>
                             <span className="bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center text-lg">

@@ -239,7 +239,6 @@ const CollectorHistoryPage = () => {
                 <p><strong>Description:</strong> {taskDetails.description || '-'}</p>
                 <p><strong>Status:</strong> {taskDetails.status}</p>
                 <p><strong>Priority:</strong> {taskDetails.priority || 'Medium'}</p>
-                <p><strong>Waste Type:</strong> {taskDetails.wasteType || 'General'}</p>
               </div>
               <div className="flex justify-center gap-4 mt-4">
                 <button

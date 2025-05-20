@@ -84,8 +84,8 @@ async function register(req, res) {
       return res.status(400).json({ success: false, message: "Phone number must be 10 digits" });
     }
 
-    if (role === "garbageCollector" && (!vehicleNumber || !collectionArea || !licenseNumber)) {
-      return res.status(400).json({ success: false, message: "Vehicle number, collection area, and license number are required for garbage collectors" });
+    if (role === "garbageCollector" && (!vehicleNumber || !licenseNumber)) {
+      return res.status(400).json({ success: false, message: "Vehicle number and license number are required for garbage collectors" });
     }
 
     email = email.toLowerCase();
