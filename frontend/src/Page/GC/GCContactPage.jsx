@@ -129,22 +129,22 @@ const GCContactPage = () => {
                             <div className="space-y-4">
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Email</p>
-                                    <p className="mt-1">{userData.email}</p>
+                                    <p className="mt-1">admin@gmail.com</p>
                                 </div>
 
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Role</p>
-                                    <p className="mt-1">{userData.role}</p>
+                                    <p className="mt-1"></p>
                                 </div>
 
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Contact Info</p>
-                                    <p className="mt-1">support@greencycle.com</p>
+                                    <p className="mt-1">greenchclestech@gmail.com</p>
                                 </div>
 
                                 <div>
                                     <p className="text-sm font-medium text-gray-500">Phone</p>
-                                    <p className="mt-1">+977 1-4444444</p>
+                                    <p className="mt-1">+977 9840840301</p>
                                 </div>
 
                                 <div>

@@ -67,9 +67,18 @@ const HomePage = () => {
                     </section>
 
                     {/* Stats Section */}
-                    {/* <section className="mb-16 bg-white rounded-xl shadow-md p-8">
-                        <h2 className="text-3xl font-bold mb-8 text-center text-green-800">Making a Difference Together</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
+                    <section className="mb-16 bg-white rounded-xl shadow-md p-8">
+                        <h2 className="text-3xl font-bold mb-8 text-center text-green-800">Important Notice</h2>
+
+                        {/* Important Notice */}
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-md mb-8">
+                            <p className="mb-2 font-medium">📞 The garbage collector will call you up to <strong>5 times</strong> to confirm your pickup.</p>
+                            <p className="mb-2">❗ If you do not answer these calls, your garbage will <strong>not be collected</strong>, and you will receive a <strong>partial refund</strong>.</p>
+                            <p className="mb-2">🚫 <strong>Cancellation is not allowed</strong> after the garbage collector is assigned.</p>
+                            <p>🔄 You can schedule your pickup again anytime if the collection was missed.</p>
+                        </div>
+
+                        {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
                             <div>
                                 <p className="text-4xl font-bold text-green-600">2.5K+</p>
                                 <p className="text-gray-600">Monthly Collections</p>
@@ -86,8 +95,8 @@ const HomePage = () => {
                                 <p className="text-4xl font-bold text-green-600">500+</p>
                                 <p className="text-gray-600">Trees Saved</p>
                             </div>
-                        </div>
-                    </section> */}
+                        </div> */}
+                    </section>
 
                     {/* CTA Section */}
                     <section className="bg-green-700 text-white rounded-xl p-8 text-center">
