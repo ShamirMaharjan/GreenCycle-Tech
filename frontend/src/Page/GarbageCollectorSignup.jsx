@@ -26,7 +26,7 @@ const GarbageCollectorSignup = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'licenseNumber') {
       // Only allow numbers
       if (!/^\d*$/.test(value)) {
@@ -40,11 +40,11 @@ const GarbageCollectorSignup = () => {
         setLicenseError("");
       }
     }
-    
+
     if (name === 'vehicleNumber') {
       // Remove any spaces and convert to uppercase
       const cleanValue = value.replace(/\s/g, '').toUpperCase();
-      
+
       // Check if it matches the format: 2 letters followed by 2 numbers followed by 2 letters
       if (!/^[A-Z]{2}\d{2}[A-Z]{2}$/.test(cleanValue)) {
         if (cleanValue.length > 0) {
@@ -55,12 +55,12 @@ const GarbageCollectorSignup = () => {
       } else {
         setVehicleError("");
       }
-      
+
       // Update the form data with the cleaned value
       setFormData({ ...formData, [name]: cleanValue });
       return;
     }
-    
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -104,7 +104,7 @@ const GarbageCollectorSignup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate vehicle number before submission
     if (!/^[A-Z]{2}\d{2}[A-Z]{2}$/.test(formData.vehicleNumber)) {
       toast.error("Please enter a valid vehicle number (format: AB12CD)", {
@@ -349,6 +349,9 @@ const GarbageCollectorSignup = () => {
           >
             Click here
           </span>
+        </p>
+        <p className="mt-2 text-center text-xs text-gray-500 italic">
+          The information provided during sign up cannot be changed later. Please ensure accuracy.
         </p>
       </div>
       <style>{`

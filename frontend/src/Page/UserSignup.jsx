@@ -250,6 +250,9 @@ const UserSignup = () => {
             Click here
           </span>
         </p>
+        <p className="mt-2 text-center text-xs text-gray-500 italic">
+          The information provided during sign up cannot be changed later. Please ensure accuracy.
+        </p>
       </div>
 
       <style>{`

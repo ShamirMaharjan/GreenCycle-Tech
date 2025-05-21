@@ -97,7 +97,7 @@ const OtpVerification = () => {
                         inputMode="numeric"
                         pattern="[0-9]*"
                         placeholder="Enter OTP"
-                        className="input-field"
+                        className="input-field w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-green-500"
                         value={otp}
                         onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                         required
