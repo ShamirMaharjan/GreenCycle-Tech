@@ -10,7 +10,11 @@ const userHistorySchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
-  wasteType: String,
+  wasteType: {
+    type: String,
+    enum: ["Recyclable", "Hazardous", "Organic"],
+    default: "Recyclable"
+  },
   date: { 
     type: Date, 
     default: Date.now 

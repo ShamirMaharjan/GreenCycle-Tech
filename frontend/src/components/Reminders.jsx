@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 const ReminderCard = ({ date, location, onDelete, id, onClick, hasCollector }) => {
   const parsedDate = new Date(date);
+  const [locationName, landmark] = location.split(' - ');
 
   return (
     <div
@@ -30,7 +31,10 @@ const ReminderCard = ({ date, location, onDelete, id, onClick, hasCollector }) =
         {format(parsedDate, 'EEEE, d MMMM yyyy')}
       </div>
       <div className="text-gray-600 mt-1">
-        <span className="font-semibold">Location:</span> {location}
+        <span className="font-semibold">Location:</span> {locationName}
+      </div>
+      <div className="text-gray-600 mt-1">
+        <span className="font-semibold">Landmark:</span> {landmark}
       </div>
     </div>
   );
@@ -38,6 +42,9 @@ const ReminderCard = ({ date, location, onDelete, id, onClick, hasCollector }) =
 
 const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
   if (!isOpen || !schedule) return null;
+
+  // Extract location and landmark from the combined location string
+  const [location, landmark] = schedule.location.split(' - ');
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -57,18 +64,15 @@ const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <h3 className="font-semibold text-gray-700">Date & Time</h3>
+              <h3 className="font-semibold text-gray-700">Date</h3>
               <p className="text-gray-600">{format(new Date(schedule.date), 'EEEE, d MMMM yyyy')}</p>
-              {schedule.estimatedTime && (
-                <p className="text-gray-600">Estimated Time: {schedule.estimatedTime}</p>
-              )}
             </div>
             <div>
               <h3 className="font-semibold text-gray-700">Status</h3>
               <p className={`inline-block px-3 py-1 rounded-full text-sm ${schedule.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                  schedule.status === 'Assigned' ? 'bg-blue-100 text-blue-800' :
-                    schedule.status === 'Picked Up' ? 'bg-green-100 text-green-800' :
-                      'bg-gray-100 text-gray-800'
+                schedule.status === 'Assigned' ? 'bg-blue-100 text-blue-800' :
+                  schedule.status === 'Picked Up' ? 'bg-green-100 text-green-800' :
+                    'bg-gray-100 text-gray-800'
                 }`}>
                 {schedule.status}
               </p>
@@ -77,29 +81,12 @@ const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
 
           <div>
             <h3 className="font-semibold text-gray-700">Location</h3>
-            <p className="text-gray-600">{schedule.location}</p>
+            <p className="text-gray-600">{location}</p>
           </div>
 
           <div>
-            <h3 className="font-semibold text-gray-700">Description</h3>
-            <p className="text-gray-600">{schedule.description}</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            {/* <div>
-              <h3 className="font-semibold text-gray-700">Waste Type</h3>
-              <p className="text-gray-600">{schedule.wasteType}</p>
-            </div> */}
-            {/* <div>
-              <h3 className="font-semibold text-gray-700">Priority</h3>
-              <p className={`inline-block px-3 py-1 rounded-full text-sm ${
-                schedule.priority === 'High' ? 'bg-red-100 text-red-800' :
-                schedule.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800' :
-                'bg-green-100 text-green-800'
-              }`}>
-                {schedule.priority}
-              </p>
-            </div> */}
+            <h3 className="font-semibold text-gray-700">Landmark</h3>
+            <p className="text-gray-600">{landmark}</p>
           </div>
 
           {schedule.notes && (
@@ -109,10 +96,19 @@ const ScheduleDetailsModal = ({ isOpen, onClose, schedule }) => {
             </div>
           )}
 
-          {schedule.collectorId && (
-            <div>
-              <h3 className="font-semibold text-gray-700">Assigned Collector</h3>
-              <p className="text-gray-600">{schedule.collectorName || 'Collector assigned'}</p>
+          {schedule.status === 'Assigned' && schedule.collectorName && (
+            <div className="bg-blue-50 p-4 rounded-lg">
+              <h3 className="font-semibold text-gray-700 mb-2">Assigned Collector</h3>
+              <div className="space-y-2">
+                <div className="flex items-center">
+                  <span className="text-gray-600 font-medium w-20">Name:</span>
+                  <span className="text-gray-800">{schedule.collectorName}</span>
+                </div>
+                <div className="flex items-center">
+                  <span className="text-gray-600 font-medium w-20">Phone:</span>
+                  <span className="text-gray-800">{schedule.collectorPhone || 'Not available'}</span>
+                </div>
+              </div>
             </div>
           )}
         </div>

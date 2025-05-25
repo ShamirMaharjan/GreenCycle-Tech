@@ -5,7 +5,7 @@ import { MapPin, Trash, CalendarIcon } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
 
-const HistoryItem = ({ location, wasteType, date, status }) => {
+const HistoryItem = ({ location, date, status }) => {
     return (
         <div className="bg-gray-200 rounded-lg p-4 mb-4">
             <div className="flex justify-between items-center">
@@ -20,10 +20,6 @@ const HistoryItem = ({ location, wasteType, date, status }) => {
 
             <div className="flex items-center justify-between mt-3">
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                        <Trash className="text-gray-600" />
-                        <span className="text-gray-600">{wasteType}</span>
-                    </div>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -80,7 +76,6 @@ const GCHistoryPage = () => {
                                     <HistoryItem
                                         key={item._id}
                                         location={item.location}
-                                        wasteType={item.wasteType}
                                         date={item.date}
                                         status={item.status}
                                     />

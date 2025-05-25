@@ -21,7 +21,7 @@ const HomePage = () => {
                             <h1 className="text-4xl md:text-5xl font-bold mb-4">Sustainable Waste Management for a Cleaner Future</h1>
                             <p className="text-xl mb-8 text-green-100">Join the green revolution and make a positive impact on our environment by managing your waste efficiently.</p>
                             <div className="flex flex-wrap gap-4">
-                                <Link to="/schedule/new">
+                                <Link to="/schedule/after-payment">
                                     <Button size="lg" className="bg-white text-green-800 hover:bg-green-100">
                                         Schedule a Pickup <ArrowRight className="ml-2 h-5 w-5" />
                                     </Button>
@@ -67,26 +67,18 @@ const HomePage = () => {
                     </section>
 
                     {/* Stats Section */}
-                    <section className="mb-16 bg-white rounded-xl shadow-md p-8">
-                        <h2 className="text-3xl font-bold mb-8 text-center text-green-800">Making a Difference Together</h2>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 text-center">
-                            <div>
-                                <p className="text-4xl font-bold text-green-600">2.5K+</p>
-                                <p className="text-gray-600">Monthly Collections</p>
-                            </div>
-                            <div>
-                                <p className="text-4xl font-bold text-green-600">75%</p>
-                                <p className="text-gray-600">Waste Recycled</p>
-                            </div>
-                            <div>
-                                <p className="text-4xl font-bold text-green-600">10K+</p>
-                                <p className="text-gray-600">Satisfied Customers</p>
-                            </div>
-                            <div>
-                                <p className="text-4xl font-bold text-green-600">500+</p>
-                                <p className="text-gray-600">Trees Saved</p>
-                            </div>
+                   <section className="mb-16 bg-white rounded-xl shadow-md p-8">
+                        <h2 className="text-3xl font-bold mb-8 text-center text-green-800">Important Notice</h2>
+
+                        {/* Important Notice */}
+                        <div className="bg-yellow-50 border-l-4 border-yellow-400 text-yellow-800 p-4 rounded-md mb-8">
+                            <p className="mb-2 font-medium">📞 The garbage collector will call you up to <strong>5 times</strong> to confirm your pickup.</p>
+                            <p className="mb-2">❗ If you do not answer these calls, your garbage will <strong>not be collected</strong>, and you will receive a <strong>partial refund</strong>.</p>
+                            <p className="mb-2">🚫 <strong>Cancellation is not allowed</strong> after the garbage collector is assigned.</p>
+                            <p>🔄 You can schedule your pickup again anytime if the collection was missed.</p>
                         </div>
+
+ 
                     </section>
 
                     {/* CTA Section */}

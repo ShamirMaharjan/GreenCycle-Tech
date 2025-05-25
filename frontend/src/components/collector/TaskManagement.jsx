@@ -25,6 +25,7 @@ import {
 
 const TaskManagement = () => {
   const [tasks, setTasks] = useState([]);
+  const [filteredTasks, setFilteredTasks] = useState([]);
   const [selectedTask, setSelectedTask] = useState(null);
   const [newStatus, setNewStatus] = useState('');
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -38,6 +39,15 @@ const TaskManagement = () => {
     try {
       const response = await axios.get('/api/scheduled-collection/assigned');
       setTasks(response.data);
+      // Filter tasks so that only one schedule per day is allowed
+      const uniqueTasks = response.data.reduce((acc, task) => {
+        const date = new Date(task.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+        if (!acc[date]) {
+          acc[date] = task;
+        }
+        return acc;
+      }, {});
+      setFilteredTasks(Object.values(uniqueTasks));
     } catch (error) {
       toast({
         title: 'Error',
@@ -62,20 +72,37 @@ const TaskManagement = () => {
     }
 
     try {
-      await axios.put(`/api/scheduled-collection/status/${selectedTask._id}`, {
+      const response = await axios.put(`/api/scheduled-collection/status/${selectedTask._id}`, {
         status: newStatus
       });
 
-      toast({
-        title: 'Success',
-        description: 'Status updated successfully',
-        status: 'success',
-        duration: 5000,
-        isClosable: true,
-      });
+      if (newStatus === "Picked Up") {
+        // Remove the task from the list if it's completed
+        setTasks(tasks.filter(task => task._id !== selectedTask._id));
+        toast({
+          title: 'Success',
+          description: 'Collection completed and moved to history',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      } else {
+        // Update the task status for other statuses
+        setTasks(tasks.map(task => 
+          task._id === selectedTask._id 
+            ? { ...task, status: newStatus }
+            : task
+        ));
+        toast({
+          title: 'Success',
+          description: 'Status updated successfully',
+          status: 'success',
+          duration: 5000,
+          isClosable: true,
+        });
+      }
 
       onClose();
-      fetchTasks();
     } catch (error) {
       toast({
         title: 'Error',
@@ -97,8 +124,6 @@ const TaskManagement = () => {
     switch (status) {
       case 'Assigned':
         return 'blue';
-      case 'Not Arrived':
-        return 'red';
       case 'On the Way':
         return 'orange';
       case 'Picked Up':
@@ -116,16 +141,14 @@ const TaskManagement = () => {
             <Th>Date</Th>
             <Th>Client</Th>
             <Th>Location</Th>
-            <Th>Description</Th>
-            <Th>Priority</Th>
             <Th>Status</Th>
             <Th>Action</Th>
           </Tr>
         </Thead>
         <Tbody>
-          {tasks.map((task) => (
+          {filteredTasks.map((task) => (
             <Tr key={task._id}>
-              <Td>{new Date(task.date).toLocaleString()}</Td>
+              <Td>{new Date(task.date).toLocaleDateString()}</Td>
               <Td>
                 <VStack align="start" spacing={1}>
                   <Text>{task.clientName}</Text>
@@ -133,8 +156,6 @@ const TaskManagement = () => {
                 </VStack>
               </Td>
               <Td>{task.location}</Td>
-              <Td>{task.description}</Td>
-              <Td>{task.priority}</Td>
               <Td>
                 <Badge colorScheme={getStatusColor(task.status)}>
                   {task.status}
@@ -167,7 +188,6 @@ const TaskManagement = () => {
                 value={newStatus}
                 onChange={(e) => setNewStatus(e.target.value)}
               >
-                <option value="Not Arrived">Not Arrived</option>
                 <option value="On the Way">On the Way</option>
                 <option value="Picked Up">Picked Up</option>
               </Select>

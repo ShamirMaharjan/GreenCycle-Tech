@@ -12,7 +12,6 @@ const TempUserSchema = new mongoose.Schema({
         required: true
     },
     vehicleNumber: { type: String },
-    collectionArea: { type: String },
     licenseNumber: { type: String },
     createdAt: { type: Date, default: Date.now, expires: '1h' } // Auto-delete after 1 hour
 });

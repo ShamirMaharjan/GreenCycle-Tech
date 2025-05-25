@@ -13,20 +13,21 @@ const NoticesPage = () => {
   const [newNotice, setNewNotice] = useState({
     title: "",
     description: "",
-    category: "All", // Automatically set to "All"
+    categories: [""]  // Initialize with empty string for the dropdown
   });
 
   useEffect(() => {
     const fetchNotices = async () => {
       try {
-        const { data } = await axios.get("http://localhost:3000/api/notices");
+        const token = localStorage.getItem('token');
+        const { data } = await axios.get("http://localhost:3000/api/notices/admin", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
         setNotices(data);
       } catch (error) {
-        toast.error(err.response?.data?.message || "Something went wrong", {
-          duration: 3000,
-          position: 'top-right',
-        });
-
+        toast.error(error.response?.data?.message || "Something went wrong");
       }
     };
     fetchNotices();
@@ -38,21 +39,19 @@ const NoticesPage = () => {
 
   const confirmDelete = async () => {
     try {
-      await axios.delete(`http://localhost:3000/api/notices/${noticeToDelete}`);
+      const token = localStorage.getItem('token');
+      await axios.delete(`http://localhost:3000/api/notices/admin/${noticeToDelete}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
       setNotices(notices.filter((n) => n._id !== noticeToDelete));
       setNoticeToDelete(null);
       setShowDeleteSuccess(true);
-      toast.success("Notice deleted successfully!", {
-        duration: 3000,
-        position: 'top-right',
-      });
+      toast.success("Notice deleted successfully!");
       setTimeout(() => setShowDeleteSuccess(false), 3000);
     } catch (error) {
-      toast.error(err.response?.data?.message || "Something went wrong", {
-        duration: 3000,
-        position: 'top-right',
-      });
-
+      toast.error(error.response?.data?.message || "Something went wrong");
     }
   };
 
@@ -63,26 +62,35 @@ const NoticesPage = () => {
   const handleAddSubmit = async (e) => {
     e.preventDefault();
     try {
+      const token = localStorage.getItem('token');
+      
+      // Ensure categories is an array and has at least one value
+      if (!newNotice.categories || newNotice.categories.length === 0) {
+        toast.error("Please select at least one category");
+        return;
+      }
+
       const payload = {
         title: newNotice.title,
         description: newNotice.description,
-        category: newNotice.category, // Always "All"
+        categories: newNotice.categories
       };
-      const { data } = await axios.post("http://localhost:3000/api/notices", payload);
+
+      console.log("Sending notice payload:", payload); // Debug log
+
+      const { data } = await axios.post("http://localhost:3000/api/notices", payload, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
       setNotices([data, ...notices]);
-      setNewNotice({ title: "", description: "", category: "All" }); // Reset to "All"
+      setNewNotice({ title: "", description: "", categories: [""] });
       setShowAddForm(false);
-      toast.success("Notice added successfully!", {
-        duration: 3000,
-        position: 'top-right',
-      });
+      toast.success("Notice added successfully!");
     } catch (error) {
-      toast.error(err.response?.data?.message || "Something went wrong", {
-        duration: 3000,
-        position: 'top-right',
-      });
-
-
+      console.error("Error creating notice:", error.response?.data || error);
+      toast.error(error.response?.data?.error || "Failed to create notice");
     }
   };
 
@@ -109,7 +117,6 @@ const NoticesPage = () => {
             <h2 className="text-lg font-bold text-white text-center">GREEN CYCLE TECH</h2>
           </div>
           <div className="relative z-10 space-y-1">
-            {/* <Link to="/adminhome" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">Home</Link> */}
             <Link to="/users" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">DASHBOARD</Link>
             <Link to="/notice" className="block px-4 py-2 bg-white text-green-600 rounded">NOTICE</Link>
             <Link to="/requestPage" className="block px-4 py-2 text-white hover:bg-white hover:text-green-600 rounded">REQUEST</Link>
@@ -154,7 +161,26 @@ const NoticesPage = () => {
                   required
                 />
               </div>
-              {/* Category is removed because it's always set to "All" */}
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Categories</label>
+                <select
+                  name="categories"
+                  value={newNotice.categories[0]}
+                  onChange={(e) => {
+                    setNewNotice(prev => ({
+                      ...prev,
+                      categories: [e.target.value]
+                    }));
+                  }}
+                  className="w-full p-3 border border-gray-300 rounded"
+                  required
+                >
+                  <option value="">Select a category</option>
+                  <option value="User">User</option>
+                  <option value="garbageCollector">Garbage Collector</option>
+                  <option value="All">All</option>
+                </select>
+              </div>
               <div className="flex justify-end space-x-4">
                 <button
                   type="button"
@@ -219,7 +245,6 @@ const NoticesPage = () => {
               </div>
 
               <div className="mt-8 flex justify-between">
-                {/* Left-aligned "View Feedback" link */}
                 <Link
                   to="/admincontact"
                   className="text-lg font-semibold text-indigo-700 hover:text-indigo-900 transition duration-200"
@@ -227,7 +252,6 @@ const NoticesPage = () => {
                   View Feedback
                 </Link>
 
-                {/* Right-aligned "Add" button */}
                 <button
                   onClick={() => setShowAddForm(true)}
                   className="bg-indigo-600 text-white px-6 py-2 rounded-full shadow-lg"

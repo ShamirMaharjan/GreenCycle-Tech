@@ -344,7 +344,7 @@ const RequestPage = () => {
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                       <tr>
-                        {['Name', 'Email', 'Phone No.', 'Address', 'Time', 'Status', 'Actions'].map((header) => (
+                        {['Name', 'Email', 'Phone No.', 'Address', 'Date', 'Status', 'Actions'].map((header) => (
                           <th key={header} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{header}</th>
                         ))}
                       </tr>
@@ -356,7 +356,7 @@ const RequestPage = () => {
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientEmail || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientPhone || '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.clientAddress || '-'}</td>
-                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.date ? new Date(req.date).toLocaleString() : '-'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap font-semibold">{req.date ? new Date(req.date).toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' }) : '-'}</td>
                           <td className="px-6 py-4 whitespace-nowrap font-semibold">
                             {req.status === 'Assigned' ? (
                               <span className="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
@@ -438,8 +438,6 @@ const RequestPage = () => {
                       <p className="font-semibold">{collector.name}</p>
                       <p className="text-sm text-gray-600">Phone: {collector.phoneNumber}</p>
                       <p className="text-sm text-gray-600">Email: {collector.email}</p>
-                      <p className="text-sm text-gray-600">Area: {collector.collectionArea}</p>
-                      <p className="text-sm text-gray-600">Pickups: {collector.pickups || 0}</p>
                     </div>
                   ))
                 ) : (
@@ -479,7 +477,6 @@ const RequestPage = () => {
               <p><strong>Name:</strong> {collectorDetails.name}</p>
               <p><strong>Phone:</strong> {collectorDetails.phoneNumber}</p>
               <p><strong>Email:</strong> {collectorDetails.email}</p>
-              <p><strong>Area:</strong> {collectorDetails.collectionArea}</p>
               <div className="flex justify-center gap-4 mt-4">
                 <button onClick={closeCollectorPopup} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Close</button>
                 <button onClick={() => handleReassign(collectorDetails.request)} className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Reassign</button>
@@ -492,9 +489,9 @@ const RequestPage = () => {
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-md text-center space-y-4 w-[90%] max-w-md">
               <h2 className="text-xl font-bold text-blue-700">Request Details</h2>
-              <p><strong>Date:</strong> {new Date(requestDetails.date).toLocaleString()}</p>
-              <p><strong>Location:</strong> {requestDetails.location || '-'}</p>
-              <p><strong>Description:</strong> {requestDetails.description || '-'}</p>
+              <p><strong>Date:</strong> {new Date(requestDetails.date).toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' })}</p>
+              <p><strong>Location:</strong> {requestDetails.location.split(' - ')[0] || '-'}</p>
+              <p><strong>Landmark:</strong> {requestDetails.location.split(' - ')[1] || '-'}</p>
               <div className="flex justify-center gap-4 mt-4">
                 <button onClick={closeRequestDetails} className="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400">Close</button>
               </div>

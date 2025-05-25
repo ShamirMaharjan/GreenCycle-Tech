@@ -50,9 +50,9 @@ const GCHomePage = () => {
                                             <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
                                                 <Calendar className="h-6 w-6 text-green-600" />
                                             </div>
-                                            <h3 className="text-xl font-semibold mb-2">Schedule Collection</h3>
+                                            <h3 className="text-xl font-semibold mb-2">Pick Collection</h3>
                                             <p className="text-gray-600">
-                                                Easily schedule waste collection at your preferred time and location.
+                                                Easily Pick waste collection
                                             </p>
                                         </div>
                                     </CardContent>

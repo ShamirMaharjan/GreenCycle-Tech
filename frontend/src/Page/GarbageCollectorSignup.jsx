@@ -17,7 +17,6 @@ const GarbageCollectorSignup = () => {
     password: "",
     confirmPassword: "",
     vehicleNumber: "",
-    collectionArea: "",
     licenseNumber: "",
     verificationImage: null
   });
@@ -27,7 +26,7 @@ const GarbageCollectorSignup = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    
+
     if (name === 'licenseNumber') {
       // Only allow numbers
       if (!/^\d*$/.test(value)) {
@@ -41,11 +40,11 @@ const GarbageCollectorSignup = () => {
         setLicenseError("");
       }
     }
-    
+
     if (name === 'vehicleNumber') {
       // Remove any spaces and convert to uppercase
       const cleanValue = value.replace(/\s/g, '').toUpperCase();
-      
+
       // Check if it matches the format: 2 letters followed by 2 numbers followed by 2 letters
       if (!/^[A-Z]{2}\d{2}[A-Z]{2}$/.test(cleanValue)) {
         if (cleanValue.length > 0) {
@@ -56,12 +55,12 @@ const GarbageCollectorSignup = () => {
       } else {
         setVehicleError("");
       }
-      
+
       // Update the form data with the cleaned value
       setFormData({ ...formData, [name]: cleanValue });
       return;
     }
-    
+
     setFormData({ ...formData, [name]: value });
   };
 
@@ -105,7 +104,7 @@ const GarbageCollectorSignup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate vehicle number before submission
     if (!/^[A-Z]{2}\d{2}[A-Z]{2}$/.test(formData.vehicleNumber)) {
       toast.error("Please enter a valid vehicle number (format: AB12CD)", {
@@ -124,7 +123,7 @@ const GarbageCollectorSignup = () => {
       return;
     }
 
-    if (!formData.vehicleNumber || !formData.collectionArea || !formData.licenseNumber) {
+    if (!formData.vehicleNumber || !formData.licenseNumber) {
       toast.error("Please fill all garbage collector details", {
         duration: 3000,
         position: 'top-right',
@@ -142,7 +141,6 @@ const GarbageCollectorSignup = () => {
       password: formData.password,
       role: "garbageCollector",
       vehicleNumber: formData.vehicleNumber,
-      collectionArea: formData.collectionArea,
       licenseNumber: formData.licenseNumber
     };
     try {
@@ -281,20 +279,6 @@ const GarbageCollectorSignup = () => {
                 <p className="text-red-500 text-sm mt-1">{vehicleError}</p>
               )}
             </div>
-            <select
-              name="collectionArea"
-              className="input-field"
-              value={formData.collectionArea}
-              onChange={handleChange}
-              required
-            >
-              <option value="">SELECT COLLECTION AREA</option>
-              <option value="Naxal">Naxal</option>
-              <option value="Baneshwor">Baneshwor</option>
-              <option value="Koteshwor">Koteshwor</option>
-              <option value="Balkhu">Balkhu</option>
-              <option value="Boudha">Boudha</option>
-            </select>
             <div>
               <input
                 type="text"
@@ -365,6 +349,9 @@ const GarbageCollectorSignup = () => {
           >
             Click here
           </span>
+        </p>
+        <p className="mt-2 text-center text-xs text-gray-500 italic">
+          The information provided during sign up cannot be changed later. Please ensure accuracy.
         </p>
       </div>
       <style>{`

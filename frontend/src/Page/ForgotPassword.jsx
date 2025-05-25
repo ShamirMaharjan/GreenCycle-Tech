@@ -1,5 +1,5 @@
 // Frontend: src/pages/ForgotPassword.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import bgImage from '../assets/backgroundimage.png';
@@ -11,6 +11,21 @@ const ForgotPassword = () => {
     const [message, setMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+            try {
+                const parsedUser = JSON.parse(savedUser);
+                if (parsedUser?.email) {
+                    setEmail(parsedUser.email);
+                }
+            } catch (e) {
+                console.error('Failed to parse user from localStorage:', e);
+            }
+        }
+    }, []);
+
 
     const handleSubmit = async (e) => {
         e.preventDefault();
