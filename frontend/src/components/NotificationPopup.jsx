@@ -15,7 +15,7 @@ const NotificationPopup = () => {
       try {
         const token = localStorage.getItem('token');
         const { data } = await axios.get(
-          'http://localhost:3000/api/notices/user',
+          `${import.meta.env.VITE_API_BASE_URL}/api/notices/user`,
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -42,14 +42,14 @@ const NotificationPopup = () => {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(
-        `http://localhost:3000/api/notices/user/${noticeToDelete}`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/notices/user/${noticeToDelete}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
           }
         }
       );
-      
+
       // Remove the deleted notice from the state
       setNotifications(notifications.filter(n => n._id !== noticeToDelete));
       setNoticeToDelete(null);

@@ -26,7 +26,7 @@ const Schedule = () => {
                     return;
                 }
 
-                const response = await axios.get('http://localhost:3000/api/scheduled-collection/reminders', {
+                const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/reminders`, {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
@@ -65,7 +65,7 @@ const Schedule = () => {
                     return;
                 }
 
-                const response = await axios.get('http://localhost:3000/payment-status', {
+                const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/payment-status`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (response.data.status === 'COMPLETE') {

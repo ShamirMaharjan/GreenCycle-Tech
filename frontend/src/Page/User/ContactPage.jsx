@@ -63,7 +63,7 @@ const ContactPage = () => {
 
         try {
             // Send the message along with user data to the backend
-            await axios.post('http://localhost:3000/api/contact', messageData, {
+            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/contact`, messageData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,  // Send the token for authorization
                 }

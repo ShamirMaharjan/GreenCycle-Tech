@@ -31,7 +31,7 @@ const ForgotPassword = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const response = await axios.post('http://localhost:3000/api/users/forgot-password', { email });
+            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/users/forgot-password`, { email });
             toast.success(response.data.message || "OTP sent successfully!", {
                 duration: 3000,
                 position: 'top-right',

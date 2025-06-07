@@ -51,7 +51,7 @@ const GCContactPage = () => {
         };
 
         try {
-            await axios.post('http://localhost:3000/api/contact', messageData, {
+            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/contact`, messageData, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 }

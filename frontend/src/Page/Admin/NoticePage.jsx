@@ -20,7 +20,7 @@ const NoticesPage = () => {
     const fetchNotices = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get("http://localhost:3000/api/notices/admin", {
+        const { data } = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/notices/admin`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -40,7 +40,7 @@ const NoticesPage = () => {
   const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:3000/api/notices/admin/${noticeToDelete}`, {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/notices/admin/${noticeToDelete}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -63,7 +63,7 @@ const NoticesPage = () => {
     e.preventDefault();
     try {
       const token = localStorage.getItem('token');
-      
+
       // Ensure categories is an array and has at least one value
       if (!newNotice.categories || newNotice.categories.length === 0) {
         toast.error("Please select at least one category");
@@ -78,7 +78,7 @@ const NoticesPage = () => {
 
       console.log("Sending notice payload:", payload); // Debug log
 
-      const { data } = await axios.post("http://localhost:3000/api/notices", payload, {
+      const { data } = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/notices`, payload, {
         headers: {
           Authorization: `Bearer ${token}`
         }

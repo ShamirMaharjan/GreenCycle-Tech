@@ -136,7 +136,7 @@ const Reminders = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/api/scheduled-collection/reminders', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/reminders`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -186,7 +186,7 @@ const Reminders = () => {
     setDeleteError(null);
 
     try {
-      const response = await fetch(`http://localhost:3000/api/scheduled-collection/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/${id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,

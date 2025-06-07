@@ -21,7 +21,7 @@ const CollectorHistoryPage = () => {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Token not found');
 
-        const res = await axios.get('http://localhost:3000/api/scheduled-collection/collector-tasks', {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/collector-tasks`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -52,7 +52,7 @@ const CollectorHistoryPage = () => {
       if (!token) throw new Error('Token not found');
 
       const response = await axios.put(
-        `http://localhost:3000/api/scheduled-collection/${taskId}/status`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/${taskId}/status`,
         { status: newStatus },
         {
           headers: {

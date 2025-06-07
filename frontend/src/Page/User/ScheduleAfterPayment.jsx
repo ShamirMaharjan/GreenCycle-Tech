@@ -42,7 +42,7 @@ const ScheduleAfterPayment = () => {
 
   const fetchLocations = async () => {
     try {
-      const response = await axios.get("http://localhost:3000/api/locations");
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/locations`);
       setLocations(response.data);
     } catch (error) {
       console.error("Error fetching locations:", error);
@@ -53,7 +53,7 @@ const ScheduleAfterPayment = () => {
   const fetchBookedDates = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:3000/api/scheduled-collection/reminders", {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/reminders`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -122,7 +122,7 @@ const ScheduleAfterPayment = () => {
       }
 
       // Check for existing booking on the same date
-      const response = await axios.get("http://localhost:3000/api/scheduled-collection/reminders", {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/reminders`, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -193,7 +193,7 @@ const ScheduleAfterPayment = () => {
               {selectedLocation && selectedLocation.imageFilename && (
                 <div className="relative">
                   <img
-                    src={`http://localhost:3000/uploads/${selectedLocation.imageFilename}`}
+                    src={`${import.meta.env.VITE_API_BASE_URL}/uploads/${selectedLocation.imageFilename}`}
                     alt={selectedLocation.name}
                     className="w-24 h-24 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
                     onClick={() => setShowFullImage(true)}
@@ -213,7 +213,7 @@ const ScheduleAfterPayment = () => {
                     <X size={24} />
                   </button>
                   <img
-                    src={`http://localhost:3000/uploads/${selectedLocation.imageFilename}`}
+                    src={`${import.meta.env.VITE_API_BASE_URL}/uploads/${selectedLocation.imageFilename}`}
                     alt={selectedLocation.name}
                     className="w-full h-auto rounded-lg"
                   />

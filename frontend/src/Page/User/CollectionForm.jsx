@@ -25,7 +25,7 @@ const CollectionForm = () => {
                     return;
                 }
 
-                const response = await axios.get('http://localhost:3000/payment-status', {
+                const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/payment-status`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
 
@@ -98,7 +98,7 @@ const CollectionForm = () => {
             console.log('Submitting form data:', completeFormData); // Debug log
 
             const response = await axios.post(
-                'http://localhost:3000/api/scheduled-collection',
+                `${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection`,
                 completeFormData,
                 {
                     headers: {

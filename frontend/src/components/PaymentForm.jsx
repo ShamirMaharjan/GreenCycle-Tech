@@ -8,7 +8,7 @@ const PaymentForm = () => {
 
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post("http://localhost:3000/initiate-payment", {
+            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/initiate-payment`, {
                 amount: 100,
                 productId: generateUniqueId(),
             }, {

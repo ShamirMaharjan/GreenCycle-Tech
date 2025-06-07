@@ -15,7 +15,7 @@ const Success = () => {
 
     const verifyPaymentAndUpdateStatus = async () => {
         try {
-            const response = await axios.post("http://localhost:3000/payment-status", {
+            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/payment-status`, {
                 product_id: decoded.transaction_uuid,
             });
 

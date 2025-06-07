@@ -44,7 +44,7 @@ const GCHistoryPage = () => {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
 
-            const response = await axios.get('http://localhost:3000/api/scheduled-collection/collector-history', {
+            const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/collector-history`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -65,7 +65,7 @@ const GCHistoryPage = () => {
                 <div className="p-6">
                     <div className="bg-white rounded-lg shadow-sm p-6">
                         <h2 className="text-2xl font-semibold mb-6">Pickup History</h2>
-                        
+
                         {loading ? (
                             <div className="text-center py-4">Loading...</div>
                         ) : history.length === 0 ? (

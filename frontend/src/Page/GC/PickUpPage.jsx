@@ -31,7 +31,7 @@ const PickUpPage = () => {
             const token = localStorage.getItem('token');
             if (!token) throw new Error('No token found');
 
-            const response = await axios.get('http://localhost:3000/api/scheduled-collection/assigned', {
+            const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/assigned`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
 
@@ -122,7 +122,7 @@ const PickUpPage = () => {
 
             // Make API call for all status updates
             const response = await axios.put(
-                `http://localhost:3000/api/scheduled-collection/status/${pickupId}`,
+                `${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/status/${pickupId}`,
                 { status: backendStatus },
                 { headers: { Authorization: `Bearer ${token}` } }
             );

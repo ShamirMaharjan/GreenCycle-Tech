@@ -16,7 +16,7 @@ const OtpVerification = () => {
         e.preventDefault();
 
         try {
-            const response = await axios.post('http://localhost:3000/api/users/verify-otp', {
+            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/users/verify-otp`, {
                 tempUserId,
                 otp
             });
@@ -43,7 +43,7 @@ const OtpVerification = () => {
     const handleResendOtp = async () => {
         setIsResending(true);
         try {
-            await axios.post('http://localhost:3000/api/users/resend-otp', {
+            await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/users/resend-otp`, {
                 tempUserId,
                 email
             });

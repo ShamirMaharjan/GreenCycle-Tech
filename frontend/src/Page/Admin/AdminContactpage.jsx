@@ -14,7 +14,7 @@ const AdminContactPage = () => {
     const fetchMessages = async () => {
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get('http://localhost:3000/api/contact', {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/contact`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -35,7 +35,7 @@ const AdminContactPage = () => {
   const confirmDelete = async () => {
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:3000/api/contact/${messageToDelete}`, {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/contact/${messageToDelete}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -99,8 +99,8 @@ const AdminContactPage = () => {
                     <p><strong>Subject:</strong> {msg.subject}</p>
                     <p><strong>Message:</strong> {msg.message}</p>
                     <p><strong>Sent:</strong> {new Date(msg.createdAt).toLocaleString()}</p>
-                    <Button 
-                      onClick={() => handleDeleteClick(msg._id)} 
+                    <Button
+                      onClick={() => handleDeleteClick(msg._id)}
                       className="mt-2 bg-red-600 text-white hover:bg-red-700"
                     >
                       Delete

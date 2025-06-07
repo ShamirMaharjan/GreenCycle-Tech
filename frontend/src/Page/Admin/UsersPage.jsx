@@ -24,7 +24,7 @@ const UsersPage = () => {
         return;
       }
 
-      const response = await fetch("http://localhost:3000/api/users/all", {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/all`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -81,7 +81,7 @@ const UsersPage = () => {
   const confirmDelete = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/api/users/${userToDelete}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/${userToDelete}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -116,7 +116,7 @@ const UsersPage = () => {
   const handleApprove = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:3000/api/users/verify-collector/${id}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users/verify-collector/${id}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -36,7 +36,7 @@ const RequestPage = () => {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Token not found');
 
-        const res = await axios.get('http://localhost:3000/api/scheduled-collection/pending', {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/pending`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -44,7 +44,7 @@ const RequestPage = () => {
 
         if (Array.isArray(res.data)) {
           // Keep all requests that are not picked up yet
-          const activeRequests = res.data.filter(req => 
+          const activeRequests = res.data.filter(req =>
             req.status !== 'Picked Up' && req.status !== 'Completed'
           );
           setRequests(activeRequests);
@@ -67,14 +67,14 @@ const RequestPage = () => {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Token not found');
 
-        const res = await axios.get('http://localhost:3000/api/users/all', {
+        const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/all`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
         console.log('Collectors response:', res.data);
-        
+
         if (res.data.success && Array.isArray(res.data.data)) {
           // Filter only garbage collectors
           const garbageCollectors = res.data.data.filter(user => user.role === "garbageCollector");
@@ -130,7 +130,7 @@ const RequestPage = () => {
       });
 
       const response = await axios.post(
-        'http://localhost:3000/api/scheduled-collection/assign',
+        `${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/assign`,
         {
           collectionId: requestToProcess._id,
           collectorId: selectedCollector._id
@@ -150,17 +150,17 @@ const RequestPage = () => {
         setRequests((prev) =>
           prev.map((req) =>
             req._id === requestToProcess._id
-              ? { 
-                  ...req, 
-                  status: 'Assigned',
-                  collectorId: selectedCollector._id,
-                  assignedTo: selectedCollector
-                }
+              ? {
+                ...req,
+                status: 'Assigned',
+                collectorId: selectedCollector._id,
+                assignedTo: selectedCollector
+              }
               : req
           )
         );
         toast.success('Collector assigned successfully!');
-        
+
         // Close all modals and reset states
         setShowCollectorSelect(false);
         setShowReassignConfirm(false);
@@ -192,7 +192,7 @@ const RequestPage = () => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Token not found');
 
-      const res = await axios.get('http://localhost:3000/api/users/all', {
+      const res = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/all`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -229,7 +229,7 @@ const RequestPage = () => {
       const token = localStorage.getItem('token');
       if (!token) throw new Error('Unauthorized');
 
-      await axios.delete(`http://localhost:3000/api/scheduled-collection/${selectedId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/scheduled-collection/${selectedId}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -256,7 +256,7 @@ const RequestPage = () => {
 
   const openCollectorPopup = (collector, request) => {
     console.log('Opening collector popup with:', { collector, request });
-    
+
     if (!collector) {
       console.error('No collector provided to openCollectorPopup');
       toast.error('Collector information not available');
@@ -277,7 +277,7 @@ const RequestPage = () => {
       // If collector is an object, use it directly
       setCollectorDetails({ ...collector, request });
     }
-    
+
     setShowCollectorInfo(true);
   };
 
@@ -425,11 +425,10 @@ const RequestPage = () => {
                   collectors.map((collector) => (
                     <div
                       key={collector._id}
-                      className={`p-3 mb-2 rounded cursor-pointer ${
-                        selectedCollector?._id === collector._id
+                      className={`p-3 mb-2 rounded cursor-pointer ${selectedCollector?._id === collector._id
                           ? 'bg-green-100 border-2 border-green-500'
                           : 'hover:bg-gray-100'
-                      }`}
+                        }`}
                       onClick={() => {
                         console.log('Selected collector:', collector);
                         setSelectedCollector(collector);
@@ -457,11 +456,10 @@ const RequestPage = () => {
                 <button
                   onClick={handleAssignCollector}
                   disabled={!selectedCollector}
-                  className={`px-4 py-2 rounded ${
-                    selectedCollector
+                  className={`px-4 py-2 rounded ${selectedCollector
                       ? 'bg-green-500 text-white hover:bg-green-600'
                       : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  }`}
+                    }`}
                 >
                   Assign
                 </button>

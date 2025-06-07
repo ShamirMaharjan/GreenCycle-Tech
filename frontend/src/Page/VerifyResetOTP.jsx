@@ -22,7 +22,7 @@ const VerifyResetOTP = () => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            const response = await axios.post('http://localhost:3000/api/users/verify-reset-otp', {
+            const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/users/verify-reset-otp`, {
                 email,
                 otp
             });

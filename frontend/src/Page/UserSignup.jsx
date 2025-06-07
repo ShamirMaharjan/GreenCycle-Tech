@@ -70,7 +70,7 @@ const UserSignup = () => {
     };
 
     try {
-      const res = await axios.post("http://localhost:3000/api/users/register", updatedFormData);
+      const res = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/users/register`, updatedFormData);
       toast.success("Registration successful! Please verify your OTP.", {
         duration: 3000,
         position: 'top-right',
