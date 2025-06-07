@@ -18,7 +18,6 @@ import UsersPage from "./Page/Admin/UsersPage";
 import GCHomePage from "./Page/GC/GCHomePage";
 import PickUpPage from "./Page/GC/PickUpPage";
 import LandingPage from "./Page/LandingPage";
-import GCViewPost from "./Page/GC/GCViewpost";
 import CollectionForm from "./Page/User/CollectionForm";
 import ScheduleAfterPayment from "./Page/User/ScheduleAfterPayment";
 import GCHistoryPage from "./Page/GC/GCHistoryPage";
@@ -76,7 +75,7 @@ function App() {
         <Route path="/viewPost" element={<ViewPost />} />
         <Route path="/schedule/new" element={<CollectionForm />} />
         <Route path="/schedule/after-payment" element={<ScheduleAfterPayment />} />
-        
+
         {/* Admin Routes */}
         {/* <Route path="/adminHome" element={<AdminHomePage />} /> */}
         <Route path="/addPost" element={<AddPostPage />} />
@@ -92,7 +91,6 @@ function App() {
         <Route path="/pickup" element={<PickUpPage />} />
         <Route path="/gcHistory" element={<GCHistoryPage />} />
         <Route path="/gcContact" element={<GCContactPage />} />
-        <Route path="/gcviewpost" element={<GCViewPost />} />
 
         {/* Payment Routes */}
         <Route path="/payment" element={<PaymentForm />} />
