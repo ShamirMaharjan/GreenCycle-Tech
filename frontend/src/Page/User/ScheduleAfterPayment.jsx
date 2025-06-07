@@ -56,7 +56,7 @@ const ScheduleAfterPayment = () => {
       const response = await axios.get("http://localhost:3000/api/scheduled-collection/reminders", {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (response.data.success) {
         setBookedDates(response.data.data.map(item => {
           const date = new Date(item.date);
@@ -78,14 +78,14 @@ const ScheduleAfterPayment = () => {
   const handleDateSelect = (date) => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-    
+
     if (date <= today) {
       toast.error("Please select a future date (starting from tomorrow)");
       return;
     }
 
     // Check if the selected date already has a booking
-    const hasBooking = bookedDates.some(bookedDate => 
+    const hasBooking = bookedDates.some(bookedDate =>
       bookedDate.toDateString() === date.toDateString()
     );
 
@@ -141,7 +141,7 @@ const ScheduleAfterPayment = () => {
       }
 
       // Get user data from localStorage
-      const userData = JSON.parse(localStorage.getItem('userData'));
+      const userData = JSON.parse(localStorage.getItem('user'));
       if (!userData) {
         toast.error('User data not found. Please login again.');
         navigate('/login');
@@ -188,7 +188,7 @@ const ScheduleAfterPayment = () => {
                 </Button>
                 <h1 className="text-2xl font-semibold">Schedule Collection</h1>
               </div>
-              
+
               {/* Location Image Preview */}
               {selectedLocation && selectedLocation.imageFilename && (
                 <div className="relative">

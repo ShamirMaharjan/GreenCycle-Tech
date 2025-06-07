@@ -19,6 +19,7 @@ const CollectionForm = () => {
         const checkPaymentStatus = async () => {
             try {
                 const token = localStorage.getItem('token');
+                console.log('CollectionForm useEffect - Token from localStorage:', token); // Added log
                 if (!token) {
                     navigate('/login');
                     return;
@@ -60,6 +61,7 @@ const CollectionForm = () => {
 
         try {
             const token = localStorage.getItem('token');
+            console.log('CollectionForm handleSubmit - Token from localStorage:', token); // Added log
             if (!token) {
                 toast.error('Please login to schedule a collection.');
                 navigate('/login');
@@ -67,7 +69,10 @@ const CollectionForm = () => {
             }
 
             // Get user data from localStorage
-            const userData = JSON.parse(localStorage.getItem('userData'));
+            const userRaw = localStorage.getItem('user');
+            console.log('CollectionForm handleSubmit - Raw user data from localStorage:', userRaw); // Added log
+            const userData = userRaw ? JSON.parse(userRaw) : null;
+            console.log('CollectionForm handleSubmit - User data from localStorage:', userData); // Existing log
             if (!userData) {
                 toast.error('User data not found. Please login again.');
                 navigate('/login');
@@ -96,7 +101,7 @@ const CollectionForm = () => {
                 'http://localhost:3000/api/scheduled-collection',
                 completeFormData,
                 {
-                    headers: { 
+                    headers: {
                         Authorization: `Bearer ${token}`,
                         'Content-Type': 'application/json'
                     }

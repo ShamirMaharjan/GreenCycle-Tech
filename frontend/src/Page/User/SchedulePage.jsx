@@ -31,7 +31,7 @@ const Schedule = () => {
                         Authorization: `Bearer ${token}`
                     }
                 });
-                
+
                 if (response.data.success) {
                     // Filter out duplicate schedules for the same date
                     const uniqueSchedules = response.data.data.reduce((acc, reminder) => {
@@ -59,7 +59,15 @@ const Schedule = () => {
         let retries = 0;
         const checkPaymentStatus = async () => {
             try {
-                const response = await axios.get('http://localhost:3000/payment-status');
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    navigate('/login');
+                    return;
+                }
+
+                const response = await axios.get('http://localhost:3000/payment-status', {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
                 if (response.data.status === 'COMPLETE') {
                     setIsPaymentComplete(true);
                     setIsCheckingPayment(false);
@@ -95,17 +103,17 @@ const Schedule = () => {
 
     // Transform reminders into calendar events
     const events = reminders
-      .filter(reminder => reminder.status !== "Picked Up")
-      .map(reminder => ({
-        date: new Date(reminder.date),
-        label: reminder.status === 'Pending' ? 'Booked' : reminder.status
-      }));
+        .filter(reminder => reminder.status !== "Picked Up")
+        .map(reminder => ({
+            date: new Date(reminder.date),
+            label: reminder.status === 'Pending' ? 'Booked' : reminder.status
+        }));
 
     const dayReminders = reminders
-      .filter(reminder => 
-        new Date(reminder.date).toDateString() === selectedDate.toDateString() &&
-        reminder.status !== "Picked Up"
-      );
+        .filter(reminder =>
+            new Date(reminder.date).toDateString() === selectedDate.toDateString() &&
+            reminder.status !== "Picked Up"
+        );
 
     return (
         <div className="flex min-h-screen bg-gray-100">

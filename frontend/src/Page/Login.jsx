@@ -24,6 +24,7 @@ const Login = ({ setIsSignup }) => {
       const { role } = res.data.user;
       localStorage.setItem('role', role);
       localStorage.setItem('user', JSON.stringify(res.data.user));
+      console.log('Login.jsx - Token received from backend:', res.data.token); // Added log
       if (res.data.token) localStorage.setItem('token', res.data.token);
 
       if (role === 'admin') {
